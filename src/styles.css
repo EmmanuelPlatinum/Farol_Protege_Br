@@ -70,9 +70,17 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-scene-copy: var(--scene-copy);
   --color-scene-label: var(--scene-label);
+  --color-farol-blue: var(--farol-blue);
+  --color-farol-blue-foreground: var(--farol-blue-foreground);
+  --color-farol-green: var(--farol-green);
+  --color-farol-green-foreground: var(--farol-green-foreground);
 }
 
 :root {
+  --farol-blue: oklch(0.59 0.16 235); /* #0284C7 Azul Farol */
+  --farol-blue-foreground: oklch(0.99 0 0);
+  --farol-green: oklch(0.59 0.16 160); /* #059669 Verde Institucional */
+  --farol-green-foreground: oklch(0.99 0 0);
   --scene-sky: oklch(0.18 0.035 250);
   --scene-horizon: oklch(0.35 0.045 220);
   --scene-sea: oklch(0.29 0.045 217);
@@ -91,58 +99,82 @@
   --scene-copy: oklch(0.96 0.01 95);
   --scene-label: oklch(0.78 0.065 175);
   --radius: 0.75rem;
-  --background: oklch(0.985 0.003 247);
-  --foreground: oklch(0.21 0.03 265);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.03 265);
+  --background: oklch(0.99 0.003 245); /* #F8FAFC / #FFFFFF Fundo claro */
+  --foreground: oklch(0.21 0.03 260); /* #0F172A Texto escuro em slate */
+  --card: oklch(1 0 0); /* #FFFFFF */
+  --card-foreground: oklch(0.21 0.03 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.03 265);
-  --primary: oklch(0.58 0.22 258);
+  --popover-foreground: oklch(0.21 0.03 260);
+  --primary: oklch(0.59 0.16 160); /* #059669 Verde Institucional/Proteção */
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.006 250);
-  --secondary-foreground: oklch(0.28 0.03 260);
-  --muted: oklch(0.965 0.005 250);
-  --muted-foreground: oklch(0.55 0.03 257);
-  --accent: oklch(0.95 0.03 255);
-  --accent-foreground: oklch(0.45 0.2 258);
+  --secondary: oklch(0.96 0.008 245);
+  --secondary-foreground: oklch(0.25 0.03 260);
+  --muted: oklch(0.965 0.005 245);
+  --muted-foreground: oklch(0.52 0.03 250); /* #64748B */
+  --accent: oklch(0.95 0.025 235);
+  --accent-foreground: oklch(0.35 0.14 235);
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
-  --success: oklch(0.62 0.15 155);
-  --success-soft: oklch(0.95 0.05 155);
+  --success: oklch(0.59 0.16 160);
+  --success-soft: oklch(0.95 0.05 160);
   --warning: oklch(0.7 0.15 70);
   --warning-soft: oklch(0.96 0.06 85);
   --danger-soft: oklch(0.95 0.04 25);
   --star: oklch(0.8 0.16 80);
-  --border: oklch(0.92 0.008 250);
-  --input: oklch(0.92 0.008 250);
-  --ring: oklch(0.58 0.22 258);
-  --chart-1: oklch(0.58 0.22 258);
-  --chart-2: oklch(0.7 0.12 230);
+  --border: oklch(0.91 0.01 250); /* #E2E8F0 */
+  --input: oklch(0.91 0.01 250);
+  --ring: oklch(0.59 0.16 160);
+  --chart-1: oklch(0.59 0.16 160); /* Verde Institucional */
+  --chart-2: oklch(0.59 0.16 235); /* Azul Farol */
   --chart-3: oklch(0.4 0.05 260);
   --chart-4: oklch(0.8 0.16 80);
-  --chart-5: oklch(0.62 0.15 155);
-  --sidebar: oklch(0.2 0.025 262);
-  --sidebar-foreground: oklch(0.85 0.01 255);
-  --sidebar-primary: oklch(0.62 0.22 258);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.27 0.03 262);
+  --chart-5: oklch(0.68 0.18 310);
+  --sidebar: oklch(0.18 0.025 260);
+  --sidebar-foreground: oklch(0.9 0.01 255);
+  --sidebar-primary: oklch(0.68 0.17 155);
+  --sidebar-primary-foreground: oklch(0.1 0.02 260);
+  --sidebar-accent: oklch(0.24 0.03 260);
   --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.28 0.03 262);
-  --sidebar-ring: oklch(0.62 0.22 258);
-  --shadow-card: 0 1px 2px oklch(0.2 0.03 260 / 0.04), 0 4px 16px -8px oklch(0.2 0.03 260 / 0.08);
+  --sidebar-border: oklch(0.26 0.03 260);
+  --sidebar-ring: oklch(0.68 0.17 155);
+  --shadow-card: 0 1px 3px oklch(0.2 0.03 260 / 0.06), 0 6px 18px -6px oklch(0.2 0.03 260 / 0.08);
 }
 
 .dark {
-  --background: oklch(0.16 0.02 262);
-  --foreground: oklch(0.96 0.005 250);
-  --card: oklch(0.2 0.025 262);
-  --card-foreground: oklch(0.96 0.005 250);
-  --popover: oklch(0.2 0.025 262);
-  --popover-foreground: oklch(0.96 0.005 250);
-  --primary: oklch(0.65 0.21 258);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.26 0.03 262);
-  --secondary-foreground: oklch(0.94 0.005 250);
+  --farol-blue: oklch(0.65 0.16 235);
+  --farol-blue-foreground: oklch(0.99 0 0);
+  --farol-green: oklch(0.68 0.17 155);
+  --farol-green-foreground: oklch(0.1 0.02 260);
+  --background: oklch(0.18 0.025 260); /* #0F172A slate-900 */
+  --foreground: oklch(0.97 0.005 240); /* #F8FAFC */
+  --card: oklch(0.22 0.025 260); /* #1E293B slate-800 */
+  --card-foreground: oklch(0.97 0.005 240);
+  --popover: oklch(0.22 0.025 260);
+  --popover-foreground: oklch(0.97 0.005 240);
+  --primary: oklch(0.68 0.17 155); /* #10B981 */
+  --primary-foreground: oklch(0.1 0.02 260);
+  --secondary: oklch(0.26 0.03 260);
+  --secondary-foreground: oklch(0.94 0.005 240);
+  --muted: oklch(0.25 0.025 260);
+  --muted-foreground: oklch(0.68 0.02 250);
+  --accent: oklch(0.28 0.05 235);
+  --accent-foreground: oklch(0.85 0.1 235);
+  --destructive: oklch(0.68 0.19 22);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.68 0.17 155);
+  --success-soft: oklch(0.3 0.06 155);
+  --warning: oklch(0.82 0.14 80);
+  --warning-soft: oklch(0.32 0.06 75);
+  --danger-soft: oklch(0.3 0.07 25);
+  --border: oklch(0.3 0.025 260);
+  --input: oklch(0.3 0.025 260);
+  --ring: oklch(0.68 0.17 155);
+  --sidebar: oklch(0.14 0.025 260);
+  --sidebar-border: oklch(0.24 0.025 260);
+  --sidebar-accent: oklch(0.22 0.03 260);
+  --shadow-card: 0 1px 3px oklch(0 0 0 / 0.35), 0 8px 24px -10px oklch(0 0 0 / 0.55);
+}
+.dark {
   --muted: oklch(0.25 0.025 262);
   --muted-foreground: oklch(0.7 0.02 257);
   --accent: oklch(0.3 0.07 260);
@@ -174,13 +206,74 @@
   }
 }
 
+/* Acessibilidade GovTech (e-MAG / W3C) */
+html.font-lg {
+  font-size: 112.5%;
+}
+html.font-xl {
+  font-size: 125%;
+}
+html.high-contrast {
+  filter: contrast(130%);
+}
+
 .login-visual { background: var(--scene-sky); }
 .lighthouse-scene { width: 100%; height: 100%; object-fit: cover; }
-.scene-beam { transform-origin: 272px 278px; animation: lighthouse-sweep 10s ease-in-out infinite; }
+.scene-beam { transform-origin: 272px 278px; transform-box: view-box; animation: lighthouse-sweep 10s ease-in-out infinite; }
 .scene-boat { animation: boat-reveal 10s ease-in-out infinite; }
 .boat-halo { animation: boat-reveal 10s ease-in-out infinite; }
 .scene-fog { animation: fog-drift 18s ease-in-out infinite alternate; }
 @keyframes lighthouse-sweep { 0%,100% { transform: rotate(-22deg); opacity: .35; } 50% { transform: rotate(24deg); opacity: .95; } }
 @keyframes boat-reveal { 0%,20%,90%,100% { opacity: .18; } 40%,65% { opacity: 1; } }
 @keyframes fog-drift { from { transform: translateX(-25px); } to { transform: translateX(25px); } }
-@media (prefers-reduced-motion: reduce) { .scene-beam, .scene-boat, .boat-halo, .scene-fog { animation: none; } .scene-beam { transform: rotate(20deg); } .scene-boat { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .scene-beam, .scene-boat, .boat-halo, .scene-fog { animation: none; } .scene-beam { transform: rotate(20deg); opacity: .85; } .scene-boat { opacity: 1; } .boat-halo { opacity: .7; } }
+
+/* Estilos de Impressão Nativa A4 para Ofício Timbrado e Relatórios */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  /* Ocultar elementos desnecessários na folha impressa */
+  header,
+  aside,
+  nav,
+  button,
+  .no-print,
+  [data-radix-portal] > div[data-state]:not(:has(.printable-document-area)) {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Container da folha A4 timbrada */
+  .printable-document-area {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #111111 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .printable-document-area * {
+    color: #111111 !important;
+  }
+
+  /* Evitar quebras de página inadequadas */
+  .print-avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

@@ -7,6 +7,7 @@ import { RiskBadge } from "@/components/risk-badge";
 import { DocumentGenerator } from "@/components/document-generator";
 import { useCases } from "@/lib/cases-store";
 import { useI18n, useTx } from "@/lib/i18n";
+import { usePrivacy } from "@/lib/privacy-store";
 
 export const Route = createFileRoute("/_dashboard/case/$caseId")({
   head: ({ params }) => ({
@@ -29,6 +30,7 @@ function CaseDetails() {
   const { caseId } = Route.useParams();
   const { t } = useI18n();
   const tx = useTx();
+  const { maskFamily, maskName, lgpdMode } = usePrivacy();
   const c = useCases().find((x) => x.id === caseId);
   const back = <Button asChild variant="ghost" className="mb-4 -ml-3"><Link to="/cases"><ArrowLeft /> {tx("Voltar para casos", "Back to cases", "Volver a los casos")}</Link></Button>;
   if (!c) return <>{back}<p className="text-muted-foreground">{tx("Caso não encontrado.", "Case not found.", "Caso no encontrado.")}</p></>;
@@ -38,8 +40,15 @@ function CaseDetails() {
       {back}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="flex items-center gap-1 font-mono text-xs text-muted-foreground"><Lock className="size-3" /> {tx("Sigiloso", "Confidential", "Confidencial")} · #{c.id}</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t.cases.family} {c.family}</h1>
+          <div className="flex items-center gap-2">
+            <p className="flex items-center gap-1 font-mono text-xs text-muted-foreground"><Lock className="size-3" /> {tx("Sigiloso", "Confidential", "Confidencial")} · #{c.id}</p>
+            {lgpdMode && (
+              <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
+                {tx("Sigilo LGPD Ativo", "LGPD Privacy Active", "Sigilo LGPD Activo")}
+              </Badge>
+            )}
+          </div>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t.cases.family} {maskFamily(c.family)}</h1>
           <div className="mt-2 flex flex-wrap gap-2"><RiskBadge risk={c.risk} /><Badge variant={variant[c.status]}>{t.status[c.status]}</Badge><Badge variant="outline">{c.type}</Badge></div>
         </div>
         <DocumentGenerator c={c} />
@@ -48,7 +57,7 @@ function CaseDetails() {
         <Card className="shadow-card">
           <CardHeader><CardTitle>{tx("Dados do caso", "Case data", "Datos del caso")}</CardTitle></CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <Info icon={User} label={tx("Criança / adolescente", "Child / teen", "Niño / adolescente")} value={`${c.child} · ${c.age} ${tx("anos", "years", "años")}`} />
+            <Info icon={User} label={tx("Criança / adolescente", "Child / teen", "Niño / adolescente")} value={`${maskName(c.child)} · ${c.age} ${tx("anos", "years", "años")}`} />
             <Info icon={MapPin} label={tx("Endereço", "Address", "Dirección")} value={c.address || "—"} />
             <Info icon={User} label={t.cases.counselor} value={c.counselor} />
             <div><p className="text-xs text-muted-foreground">{tx("Relato", "Description", "Relato")}</p><p className="mt-1">{c.description || "—"}</p></div>

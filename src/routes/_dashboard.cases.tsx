@@ -11,6 +11,7 @@ import { NewCaseDialog } from "@/components/new-case-dialog";
 import { RiskBadge } from "@/components/risk-badge";
 import { useI18n, useTx } from "@/lib/i18n";
 import { sortByRisk, useCases } from "@/lib/cases-store";
+import { usePrivacy } from "@/lib/privacy-store";
 
 export const Route = createFileRoute("/_dashboard/cases")({
   head: () => ({
@@ -31,6 +32,7 @@ const variant = { open: "warning", urgent: "danger", closed: "success" } as cons
 function Cases() {
   const { t } = useI18n();
   const tx = useTx();
+  const { maskFamily, maskName, lgpdMode } = usePrivacy();
   const navigate = useNavigate();
   const all = useCases();
   const [q, setQ] = useState("");
@@ -95,7 +97,10 @@ function Cases() {
             {rows.map((r) => (
               <TableRow key={r.id} className="cursor-pointer" onClick={() => navigate({ to: "/case/$caseId", params: { caseId: r.id } })}>
                 <TableCell className="font-mono text-xs"><span className="inline-flex items-center gap-1"><Lock className="size-3 text-muted-foreground" />#{r.id}</span></TableCell>
-                <TableCell className="font-medium">{t.cases.family} {r.family}</TableCell>
+                <TableCell className="font-medium">
+                  <span>{t.cases.family} {maskFamily(r.family)}</span>
+                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">({maskName(r.child)})</span>
+                </TableCell>
                 <TableCell><RiskBadge risk={r.risk} /></TableCell>
                 <TableCell className="hidden sm:table-cell text-muted-foreground">{r.type}</TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground">{r.counselor}</TableCell>

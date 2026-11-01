@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { LayoutDashboard, FolderLock, CalendarClock, FileText, Settings, ShieldCheck, Radar } from "lucide-react";
+import { FarolProtegeLogo } from "@/components/farol-logo";
 import {
   Sidebar,
   SidebarContent,
@@ -29,12 +30,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <Link to="/" className="flex items-center gap-2 px-2 py-3">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <ShieldCheck className="size-4" />
-          </div>
-          <span className="truncate text-base font-semibold text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden">
-            Farol Protege
-          </span>
+          <FarolProtegeLogo size="sm" showSubtitle={false} />
         </Link>
       </SidebarHeader>
       <SidebarContent>
