@@ -21,9 +21,9 @@ import c4 from "@/assets/c4.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Tutele — Proteção à infância e Conselho Tutelar" },
+      { title: "Farol — Proteção à infância e Conselho Tutelar" },
       { name: "description", content: "Denúncia anônima, informações sobre o Conselho Tutelar e conselheiros de plantão." },
-      { property: "og:title", content: "Tutele — Proteção à infância e Conselho Tutelar" },
+      { property: "og:title", content: "Farol — Proteção à infância e Conselho Tutelar" },
       { property: "og:description", content: "Denúncia anônima, informações sobre o Conselho Tutelar e conselheiros de plantão." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -44,7 +44,7 @@ function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
       <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"><ShieldCheck className="size-4" /></span>
-      Tutele
+      Farol
     </Link>
   );
 }
@@ -172,7 +172,7 @@ function Landing() {
       <footer className="border-t">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-8 text-sm text-muted-foreground sm:flex-row md:px-6">
           <Logo />
-          <p>© {new Date().getFullYear()} Tutele. {L.rights}</p>
+          <p>© {new Date().getFullYear()} Farol. {L.rights}</p>
         </div>
       </footer>
     </div>

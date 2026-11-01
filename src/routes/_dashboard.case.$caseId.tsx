@@ -11,9 +11,9 @@ import { useI18n, useTx } from "@/lib/i18n";
 export const Route = createFileRoute("/_dashboard/case/$caseId")({
   head: ({ params }) => ({
     meta: [
-      { title: `Caso #${params.caseId} — Tutele Protege` },
+      { title: `Caso #${params.caseId} — Farol Protege` },
       { name: "description", content: "Histórico completo e ofícios de um caso sigiloso." },
-      { property: "og:title", content: `Caso #${params.caseId} — Tutele Protege` },
+      { property: "og:title", content: `Caso #${params.caseId} — Farol Protege` },
       { property: "og:description", content: "Histórico completo e ofícios de um caso sigiloso." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

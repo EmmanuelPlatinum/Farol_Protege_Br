@@ -33,7 +33,7 @@ export function AppSidebar() {
             <ShieldCheck className="size-4" />
           </div>
           <span className="truncate text-base font-semibold text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden">
-            Tutele Protege
+            Farol Protege
           </span>
         </Link>
       </SidebarHeader>

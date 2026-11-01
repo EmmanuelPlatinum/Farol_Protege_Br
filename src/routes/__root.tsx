@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Protege — Gestão para Conselhos Tutelares" },
+      { title: "Farol Protege — Gestão para Conselhos Tutelares" },
       { name: "description", content: "Gestão de casos, ofícios e plantões para Conselhos Tutelares." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

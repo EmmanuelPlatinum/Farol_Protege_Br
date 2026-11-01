@@ -42,7 +42,7 @@ export function AppHeader() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <p className="font-medium">Ana Costa</p>
-              <p className="text-xs font-normal text-muted-foreground">ana@protege.gov.br</p>
+              <p className="text-xs font-normal text-muted-foreground">ana@farolprotege.gov.br</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>{t.profile}</DropdownMenuItem>
