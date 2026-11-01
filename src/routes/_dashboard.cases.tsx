@@ -15,9 +15,9 @@ import { sortByRisk, useCases } from "@/lib/cases-store";
 export const Route = createFileRoute("/_dashboard/cases")({
   head: () => ({
     meta: [
-      { title: "Casos — Tutele Protege" },
+      { title: "Casos — Farol Protege" },
       { name: "description", content: "Triagem inteligente e gestão de casos sigilosos do Conselho Tutelar." },
-      { property: "og:title", content: "Casos — Tutele Protege" },
+      { property: "og:title", content: "Casos — Farol Protege" },
       { property: "og:description", content: "Triagem inteligente e gestão de casos sigilosos do Conselho Tutelar." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

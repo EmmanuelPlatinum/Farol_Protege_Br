@@ -10,9 +10,9 @@ import { resetDemoData } from "@/lib/cases-store";
 export const Route = createFileRoute("/_dashboard/settings")({
   head: () => ({
     meta: [
-      { title: "Configurações — Tutele Protege" },
+      { title: "Configurações — Farol Protege" },
       { name: "description", content: "Configure automações e notificações do conselho." },
-      { property: "og:title", content: "Configurações — Tutele Protege" },
+      { property: "og:title", content: "Configurações — Farol Protege" },
       { property: "og:description", content: "Configure automações e notificações do conselho." },
     ],
   }),

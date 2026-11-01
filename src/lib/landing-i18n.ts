@@ -11,7 +11,7 @@ type L = {
 export const landing: Record<Lang, L> = {
   pt: {
     login: "Entrar", badge: "Plataforma oficial de proteção à infância", hero: "Gestão Inteligente e Segura para", heroHi: "Conselhos Tutelares",
-    sub: "O Tutele aproxima a comunidade do Conselho Tutelar: denúncias anônimas, informação clara e atendimento rápido para proteger crianças e adolescentes.",
+    sub: "O Farol aproxima a comunidade do Conselho Tutelar: denúncias anônimas, informação clara e atendimento rápido para proteger crianças e adolescentes.",
     cta: "Fazer denúncia anônima", report: "Acessar o painel", note: "Seus dados não são identificados",
     learnTitle: "Entenda o Conselho Tutelar", learnSub: "Um órgão municipal, autônomo e permanente, criado pelo Estatuto da Criança e do Adolescente (ECA).",
     learn: [["Para que serve", "Zelar pelos direitos de crianças e adolescentes, aplicando medidas de proteção e acompanhando famílias em situação de risco."], ["Quando acionar", "Em casos de violência, abuso, negligência, abandono, trabalho infantil, evasão escolar ou riscos na internet."], ["Como protege", "Faz visitas, requisita serviços de saúde, educação e assistência e comunica o Ministério Público e a Justiça."]],
@@ -24,7 +24,7 @@ export const landing: Record<Lang, L> = {
   },
   en: {
     login: "Log in", badge: "Official child protection platform", hero: "Smart, Secure Management for", heroHi: "Child Protection Councils",
-    sub: "Tutele connects the community to the Child Protection Council: anonymous reports, clear information and fast response to protect children and teens.",
+    sub: "Farol connects the community to the Child Protection Council: anonymous reports, clear information and fast response to protect children and teens.",
     cta: "Make an anonymous report", report: "Open the dashboard", note: "Your identity is never recorded",
     learnTitle: "Understand the Child Protection Service", learnSub: "A permanent, autonomous municipal body created by Brazil's Child and Adolescent Statute (ECA).",
     learn: [["Its purpose", "To uphold the rights of children and teens, applying protective measures and supporting families at risk."], ["When to call", "In cases of violence, abuse, neglect, abandonment, child labor, school dropout or online risks."], ["How it protects", "It visits homes, requests health, education and social services, and notifies prosecutors and courts."]],
@@ -37,7 +37,7 @@ export const landing: Record<Lang, L> = {
   },
   es: {
     login: "Iniciar sesión", badge: "Plataforma oficial de protección de la infancia", hero: "Gestión Inteligente y Segura para", heroHi: "Consejos Tutelares",
-    sub: "Tutele acerca la comunidad al Consejo Tutelar: denuncias anónimas, información clara y atención rápida para proteger a niños y adolescentes.",
+    sub: "Farol acerca la comunidad al Consejo Tutelar: denuncias anónimas, información clara y atención rápida para proteger a niños y adolescentes.",
     cta: "Hacer una denuncia anónima", report: "Acceder al panel", note: "Tus datos no se identifican",
     learnTitle: "Entiende el Consejo Tutelar", learnSub: "Un órgano municipal, autónomo y permanente, creado por el Estatuto de la Niñez y la Adolescencia (ECA).",
     learn: [["Para qué sirve", "Velar por los derechos de niños y adolescentes, aplicar medidas de protección y acompañar a familias en situación de riesgo."], ["Cuándo acudir", "En casos de violencia, abuso, negligencia, abandono, trabajo infantil, evasión escolar o riesgos en internet."], ["Cómo protege", "Realiza visitas, solicita servicios de salud, educación y asistencia, y comunica al Ministerio Público y a la Justicia."]],
@@ -50,7 +50,7 @@ export const landing: Record<Lang, L> = {
   },
   fr: {
     login: "Connexion", badge: "Plateforme officielle de protection de l'enfance", hero: "Une gestion intelligente et sécurisée pour les", heroHi: "Conseils de protection de l'enfance",
-    sub: "Tutele rapproche la communauté du Conseil Tutélaire : signalements anonymes, informations claires et intervention rapide pour protéger enfants et adolescents.",
+    sub: "Farol rapproche la communauté du Conseil Tutélaire : signalements anonymes, informations claires et intervention rapide pour protéger enfants et adolescents.",
     cta: "Faire un signalement anonyme", report: "Accéder au tableau de bord", note: "Votre identité n'est jamais enregistrée",
     learnTitle: "Comprendre le Conseil Tutélaire", learnSub: "Un organe municipal, autonome et permanent, créé par le Statut de l'enfant et de l'adolescent (ECA).",
     learn: [["Sa mission", "Veiller aux droits des enfants et adolescents, appliquer des mesures de protection et accompagner les familles à risque."], ["Quand l'appeler", "En cas de violence, d'abus, de négligence, d'abandon, de travail des enfants, de décrochage scolaire ou de risques en ligne."], ["Comment il protège", "Il effectue des visites, sollicite les services de santé, d'éducation et sociaux, et saisit le parquet et la justice."]],
@@ -63,7 +63,7 @@ export const landing: Record<Lang, L> = {
   },
   ja: {
     login: "ログイン", badge: "公式の子ども保護プラットフォーム", hero: "スマートで安全な管理を", heroHi: "児童保護評議会へ",
-    sub: "Tutele は地域と児童保護評議会をつなぎます。匿名通報、わかりやすい情報、迅速な対応で子どもと若者を守ります。",
+    sub: "Farol は地域と児童保護評議会をつなぎます。匿名通報、わかりやすい情報、迅速な対応で子どもと若者を守ります。",
     cta: "匿名で通報する", report: "ダッシュボードへ", note: "あなたの身元は記録されません",
     learnTitle: "児童保護評議会とは", learnSub: "児童・青少年法（ECA）によって設置された、常設かつ独立した市の機関です。",
     learn: [["目的", "子どもと若者の権利を守り、保護措置を講じ、リスクのある家庭を支援します。"], ["連絡すべきとき", "暴力、虐待、ネグレクト、遺棄、児童労働、不登校、ネット上の危険があるとき。"], ["保護の方法", "家庭訪問を行い、医療・教育・福祉サービスを要請し、検察や裁判所に通知します。"]],
@@ -76,7 +76,7 @@ export const landing: Record<Lang, L> = {
   },
   zh: {
     login: "登录", badge: "官方儿童保护平台", hero: "为", heroHi: "儿童保护委员会提供智能、安全的管理",
-    sub: "Tutele 连接社区与儿童保护委员会：匿名举报、清晰信息和快速响应，守护儿童和青少年。",
+    sub: "Farol 连接社区与儿童保护委员会：匿名举报、清晰信息和快速响应，守护儿童和青少年。",
     cta: "匿名举报", report: "进入控制台", note: "绝不记录您的身份",
     learnTitle: "了解儿童保护委员会", learnSub: "依据《儿童和青少年法》（ECA）设立的常设、自治市级机构。",
     learn: [["职责", "维护儿童和青少年的权利，采取保护措施并帮助处于风险中的家庭。"], ["何时求助", "遇到暴力、虐待、忽视、遗弃、童工、辍学或网络风险时。"], ["如何保护", "进行家访，申请医疗、教育和社会服务，并通报检察院和法院。"]],
@@ -89,7 +89,7 @@ export const landing: Record<Lang, L> = {
   },
   ko: {
     login: "로그인", badge: "공식 아동 보호 플랫폼", hero: "스마트하고 안전한 관리,", heroHi: "아동보호위원회를 위해",
-    sub: "Tutele는 지역 사회와 아동보호위원회를 연결합니다. 익명 신고, 명확한 정보, 신속한 대응으로 아동과 청소년을 보호합니다.",
+    sub: "Farol는 지역 사회와 아동보호위원회를 연결합니다. 익명 신고, 명확한 정보, 신속한 대응으로 아동과 청소년을 보호합니다.",
     cta: "익명으로 신고하기", report: "대시보드로 이동", note: "신원은 절대 기록되지 않습니다",
     learnTitle: "아동보호위원회 이해하기", learnSub: "아동·청소년법(ECA)에 따라 설립된 상설 자치 시 기관입니다.",
     learn: [["역할", "아동과 청소년의 권리를 지키고, 보호 조치를 시행하며 위기 가정을 지원합니다."], ["언제 연락하나요", "폭력, 학대, 방임, 유기, 아동 노동, 학업 중단 또는 온라인 위험이 있을 때."], ["보호 방법", "가정을 방문하고 의료·교육·복지 서비스를 요청하며 검찰과 법원에 통보합니다."]],

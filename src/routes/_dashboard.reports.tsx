@@ -10,9 +10,9 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/_dashboard/reports")({
   head: () => ({
     meta: [
-      { title: "Relatórios ECA — Tutele Protege" },
+      { title: "Relatórios ECA — Farol Protege" },
       { name: "description", content: "Relatórios e ofícios gerados conforme o ECA." },
-      { property: "og:title", content: "Relatórios ECA — Tutele Protege" },
+      { property: "og:title", content: "Relatórios ECA — Farol Protege" },
       { property: "og:description", content: "Relatórios e ofícios gerados conforme o ECA." },
     ],
   }),

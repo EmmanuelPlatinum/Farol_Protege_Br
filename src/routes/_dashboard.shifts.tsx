@@ -8,9 +8,9 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/_dashboard/shifts")({
   head: () => ({
     meta: [
-      { title: "Plantões — Tutele Protege" },
+      { title: "Plantões — Farol Protege" },
       { name: "description", content: "Escala de plantão integrada do Conselho Tutelar." },
-      { property: "og:title", content: "Plantões — Tutele Protege" },
+      { property: "og:title", content: "Plantões — Farol Protege" },
       { property: "og:description", content: "Escala de plantão integrada do Conselho Tutelar." },
     ],
   }),

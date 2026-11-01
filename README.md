@@ -1,4 +1,4 @@
-# Tutele Protege Br
+# Farol Protege
 
 Build a modern, responsive SaaS web application dashboard for a local business automation platform. The primary users are local business owners who need to manage their appointments, customer messages, and online reputation.
 
