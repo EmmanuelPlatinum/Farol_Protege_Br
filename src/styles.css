@@ -68,9 +68,28 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-scene-copy: var(--scene-copy);
+  --color-scene-label: var(--scene-label);
 }
 
 :root {
+  --scene-sky: oklch(0.18 0.035 250);
+  --scene-horizon: oklch(0.35 0.045 220);
+  --scene-sea: oklch(0.29 0.045 217);
+  --scene-star: oklch(0.85 0.02 210);
+  --scene-moon: oklch(0.89 0.025 90);
+  --scene-fog: oklch(0.73 0.03 215);
+  --scene-ripple: oklch(0.55 0.045 210);
+  --scene-light: oklch(0.95 0.1 95);
+  --scene-stone: oklch(0.53 0.035 210);
+  --scene-facade: oklch(0.88 0.015 90);
+  --scene-rock: oklch(0.2 0.025 200);
+  --scene-land: oklch(0.35 0.055 170);
+  --scene-stripe: oklch(0.42 0.065 30);
+  --scene-roof: oklch(0.23 0.035 220);
+  --scene-boat: oklch(0.75 0.055 85);
+  --scene-copy: oklch(0.96 0.01 95);
+  --scene-label: oklch(0.78 0.065 175);
   --radius: 0.75rem;
   --background: oklch(0.985 0.003 247);
   --foreground: oklch(0.21 0.03 265);
@@ -154,3 +173,14 @@
     color: var(--color-foreground);
   }
 }
+
+.login-visual { background: var(--scene-sky); }
+.lighthouse-scene { width: 100%; height: 100%; object-fit: cover; }
+.scene-beam { transform-origin: 272px 278px; animation: lighthouse-sweep 10s ease-in-out infinite; }
+.scene-boat { animation: boat-reveal 10s ease-in-out infinite; }
+.boat-halo { animation: boat-reveal 10s ease-in-out infinite; }
+.scene-fog { animation: fog-drift 18s ease-in-out infinite alternate; }
+@keyframes lighthouse-sweep { 0%,100% { transform: rotate(-22deg); opacity: .35; } 50% { transform: rotate(24deg); opacity: .95; } }
+@keyframes boat-reveal { 0%,20%,90%,100% { opacity: .18; } 40%,65% { opacity: 1; } }
+@keyframes fog-drift { from { transform: translateX(-25px); } to { transform: translateX(25px); } }
+@media (prefers-reduced-motion: reduce) { .scene-beam, .scene-boat, .boat-halo, .scene-fog { animation: none; } .scene-beam { transform: rotate(20deg); } .scene-boat { opacity: 1; } }

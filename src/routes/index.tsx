@@ -107,7 +107,7 @@ function Landing() {
           <div className="flex items-center gap-1 sm:gap-2">
             <LanguageToggle />
             <ThemeToggle />
-            <Button asChild variant="ghost"><Link to="/dashboard">{L.login}</Link></Button>
+            <Button asChild variant="ghost"><Link to="/login">{L.login}</Link></Button>
           </div>
         </div>
       </header>
