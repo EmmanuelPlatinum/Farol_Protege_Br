@@ -24,7 +24,7 @@ describe("Weekly shifts", () => {
   });
 
   it("moves exactly one week when navigating", () => {
-    expect(dateKey(weekDates(new Date(2026, 10, 1), 1)[0])).toBe("2026-11-02");
+    expect(dateKey(weekDates(new Date(2026, 10, 1), 1)[0]!)).toBe("2026-11-02");
   });
 
   it("keeps the previous night's shift active before 08:00", () => {

@@ -30,7 +30,7 @@ function CaseDetails() {
   const { caseId } = Route.useParams();
   const { t } = useI18n();
   const tx = useTx();
-  const { maskFamily, maskName, lgpdMode } = usePrivacy();
+  const { maskFamily, maskName, maskAddress, lgpdMode } = usePrivacy();
   const c = useCases().find((x) => x.id === caseId);
   const back = <Button asChild variant="ghost" className="mb-4 -ml-3"><Link to="/cases"><ArrowLeft /> {tx("Voltar para casos", "Back to cases", "Volver a los casos")}</Link></Button>;
   if (!c) return <>{back}<p className="text-muted-foreground">{tx("Caso não encontrado.", "Case not found.", "Caso no encontrado.")}</p></>;
@@ -58,7 +58,7 @@ function CaseDetails() {
           <CardHeader><CardTitle>{tx("Dados do caso", "Case data", "Datos del caso")}</CardTitle></CardHeader>
           <CardContent className="space-y-4 text-sm">
             <Info icon={User} label={tx("Criança / adolescente", "Child / teen", "Niño / adolescente")} value={`${maskName(c.child)} · ${c.age} ${tx("anos", "years", "años")}`} />
-            <Info icon={MapPin} label={tx("Endereço", "Address", "Dirección")} value={c.address || "—"} />
+            <Info icon={MapPin} label={tx("Endereço", "Address", "Dirección")} value={c.address ? maskAddress(c.address) : "—"} />
             <Info icon={User} label={t.cases.counselor} value={c.counselor} />
             <div><p className="text-xs text-muted-foreground">{tx("Relato", "Description", "Relato")}</p><p className="mt-1">{c.description || "—"}</p></div>
           </CardContent>
