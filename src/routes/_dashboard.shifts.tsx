@@ -501,7 +501,7 @@ function Shifts() {
                                   {counselors[activeIndex]}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground">
-                                  {t.periods[period].split(" ")[0]}
+                                  {t.periods[period].split(" ")[0] ?? ""}
                                 </span>
                               </div>
                             </div>
