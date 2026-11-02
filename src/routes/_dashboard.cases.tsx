@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Lock, Search } from "lucide-react";
+import { Download, Lock, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,15 @@ function Cases() {
 
   return (
     <>
-      <PageHeader title={t.cases.title} subtitle={tx("Casos críticos ficam sempre no topo da lista.", "Critical cases always stay at the top.", "Los casos críticos siempre permanecen al inicio de la lista.")} action={<NewCaseDialog />} />
+      <PageHeader title={t.cases.title} subtitle={tx("Casos críticos ficam sempre no topo da lista.", "Critical cases always stay at the top.", "Los casos críticos siempre permanecen al inicio de la lista.")} action={<><Button variant="outline" className="gap-2" onClick={() => {
+        const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+        const head = ["Nº", "Criança", "Família", "Idade", "Tipo de violação", "Risco", "Status", "Conselheiro", "Providências"];
+        const lines = rows.map((c) => [c.id, maskName(c.child), maskFamily(c.family), c.age, c.type, c.risk, t.status[c.status], c.counselor, (c.timeline ?? []).map((e) => e.title).join(" | ")].map(esc).join(";"));
+        const blob = new Blob(["\uFEFF" + [head.map(esc).join(";"), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob); const a = document.createElement("a");
+        a.href = url; a.download = `relatorio_mensal_cmdca_${new Date().toISOString().slice(0, 7)}.csv`;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }}><Download className="size-4" />{tx("Exportar Relatório Mensal", "Export Monthly Report", "Exportar Informe Mensual")}</Button><NewCaseDialog /></>} />
       <Card className="mb-4 grid gap-3 p-4 shadow-card sm:grid-cols-2 lg:grid-cols-[1fr_180px_180px_180px]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
