@@ -252,6 +252,7 @@ export function normalizePin(pin: string): string {
 
 export function findPublicReportByPin(rawPin: string): PublicReport | null {
   if (!rawPin || !rawPin.trim()) return null;
+  load();
   const target = normalizePin(rawPin);
   const cleanTarget = target.replace(/[^A-Z0-9]/g, "");
 

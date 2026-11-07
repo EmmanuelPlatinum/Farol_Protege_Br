@@ -1,5 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FolderLock, CalendarClock, FileText, Settings, ShieldCheck, Radar } from "lucide-react";
+import {
+  LayoutDashboard,
+  FolderLock,
+  CalendarClock,
+  FileText,
+  Settings,
+  ShieldCheck,
+  Radar,
+  Building2,
+  ClipboardList,
+} from "lucide-react";
 import { FarolProtegeLogo } from "@/components/farol-logo";
 import {
   Sidebar,
@@ -21,7 +31,21 @@ export function AppSidebar() {
   const items = [
     { title: t.nav.dashboard, url: "/dashboard", icon: LayoutDashboard },
     { title: t.nav.cases, url: "/cases", icon: FolderLock },
-    { title: tx("Alertas Digitais (API)", "Digital API Alerts", "Alertas Digitales (API)"), url: "/alerts", icon: Radar },
+    {
+      title: tx("Alertas Digitais (API)", "Digital API Alerts", "Alertas Digitales (API)"),
+      url: "/alerts",
+      icon: Radar,
+    },
+    {
+      title: tx("Vagas em Abrigos", "Shelter vacancies", "Plazas en acogida"),
+      url: "/shelters",
+      icon: Building2,
+    },
+    {
+      title: tx("Gestão de Operações", "Operations management", "Gestión de operaciones"),
+      url: "/operations",
+      icon: ClipboardList,
+    },
     { title: t.nav.shifts, url: "/shifts", icon: CalendarClock },
     { title: t.nav.reports, url: "/reports", icon: FileText },
     { title: t.nav.settings, url: "/settings", icon: Settings },
@@ -40,7 +64,13 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={path === item.url || (item.url === "/cases" && path.startsWith("/case/"))} tooltip={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      path === item.url || (item.url === "/cases" && path.startsWith("/case/"))
+                    }
+                    tooltip={item.title}
+                  >
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>

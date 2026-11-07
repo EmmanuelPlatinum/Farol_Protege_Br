@@ -14,4 +14,26 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it("matches the shelter and operations dashboard pages", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+
+    expect(router.matchRoutes("/shelters").at(-1)?.routeId).toBe("/_dashboard/shelters");
+    expect(router.matchRoutes("/operations").at(-1)?.routeId).toBe("/_dashboard/operations");
+  });
+
+  it("matches each public section as its own page", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    const publicRoutes = [
+      ["/about", "/_public/about"],
+      ["/report", "/_public/report"],
+      ["/tracking", "/_public/tracking"],
+      ["/public-shifts", "/_public/public-shifts"],
+      ["/transparency", "/_public/transparency"],
+    ] as const;
+
+    for (const [path, routeId] of publicRoutes) {
+      expect(router.matchRoutes(path).at(-1)?.routeId).toBe(routeId);
+    }
+  });
 });

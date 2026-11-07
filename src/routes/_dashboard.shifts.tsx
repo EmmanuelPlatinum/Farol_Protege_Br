@@ -480,10 +480,13 @@ function Shifts() {
                       </th>
 
                       {/* Shifts Columns (0: Diurno, 1: Noturno) */}
-                      {[0, 1].map((period) => {
+                      {([0, 1] as const).map((period) => {
                         const assignedIndex = assignedCounselor(date, period);
                         const key = shiftKey(date, period);
                         const existingRequest = swapRequests[key];
+                        const periodLabel =
+                          t.periods[period]?.split(" ")[0] ??
+                          tx("Turno", "Shift", "Turno");
 
                         // Pure helper guarantees active counselor is retained unless approved
                         const activeIndex = resolveActiveCounselor(assignedIndex, existingRequest);
@@ -501,7 +504,7 @@ function Shifts() {
                                   {counselors[activeIndex]}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground">
-                                  {t.periods[period].split(" ")[0]}
+                                {periodLabel}
                                 </span>
                               </div>
                             </div>

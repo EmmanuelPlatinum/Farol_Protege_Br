@@ -11,13 +11,21 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as PublicRouteImport } from './routes/_public'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardAlertsRouteImport } from './routes/_dashboard.alerts'
 import { Route as DashboardCasesRouteImport } from './routes/_dashboard.cases'
 import { Route as DashboardDashboardRouteImport } from './routes/_dashboard.dashboard'
+import { Route as DashboardOperationsRouteImport } from './routes/_dashboard.operations'
 import { Route as DashboardReportsRouteImport } from './routes/_dashboard.reports'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard.settings'
+import { Route as DashboardSheltersRouteImport } from './routes/_dashboard.shelters'
 import { Route as DashboardShiftsRouteImport } from './routes/_dashboard.shifts'
+import { Route as PublicAboutRouteImport } from './routes/_public.about'
+import { Route as PublicPublicShiftsRouteImport } from './routes/_public.public-shifts'
+import { Route as PublicReportRouteImport } from './routes/_public.report'
+import { Route as PublicTrackingRouteImport } from './routes/_public.tracking'
+import { Route as PublicTransparencyRouteImport } from './routes/_public.transparency'
 import { Route as DashboardCaseCaseIdRouteImport } from './routes/_dashboard.case.$caseId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -27,6 +35,10 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/_dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -49,6 +61,11 @@ const DashboardDashboardRoute = DashboardDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardOperationsRoute = DashboardOperationsRouteImport.update({
+  id: '/operations',
+  path: '/operations',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardReportsRoute = DashboardReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -59,10 +76,40 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSheltersRoute = DashboardSheltersRouteImport.update({
+  id: '/shelters',
+  path: '/shelters',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardShiftsRoute = DashboardShiftsRouteImport.update({
   id: '/shifts',
   path: '/shifts',
   getParentRoute: () => DashboardRoute,
+} as any)
+const PublicAboutRoute = PublicAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicPublicShiftsRoute = PublicPublicShiftsRouteImport.update({
+  id: '/public-shifts',
+  path: '/public-shifts',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicReportRoute = PublicReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicTrackingRoute = PublicTrackingRouteImport.update({
+  id: '/tracking',
+  path: '/tracking',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicTransparencyRoute = PublicTransparencyRouteImport.update({
+  id: '/transparency',
+  path: '/transparency',
+  getParentRoute: () => PublicRoute,
 } as any)
 const DashboardCaseCaseIdRoute = DashboardCaseCaseIdRouteImport.update({
   id: '/case/$caseId',
@@ -76,9 +123,16 @@ export interface FileRoutesByFullPath {
   '/alerts': typeof DashboardAlertsRoute
   '/cases': typeof DashboardCasesRoute
   '/dashboard': typeof DashboardDashboardRoute
+  '/operations': typeof DashboardOperationsRoute
   '/reports': typeof DashboardReportsRoute
   '/settings': typeof DashboardSettingsRoute
+  '/shelters': typeof DashboardSheltersRoute
   '/shifts': typeof DashboardShiftsRoute
+  '/about': typeof PublicAboutRoute
+  '/public-shifts': typeof PublicPublicShiftsRoute
+  '/report': typeof PublicReportRoute
+  '/tracking': typeof PublicTrackingRoute
+  '/transparency': typeof PublicTransparencyRoute
   '/case/$caseId': typeof DashboardCaseCaseIdRoute
 }
 export interface FileRoutesByTo {
@@ -87,22 +141,37 @@ export interface FileRoutesByTo {
   '/alerts': typeof DashboardAlertsRoute
   '/cases': typeof DashboardCasesRoute
   '/dashboard': typeof DashboardDashboardRoute
+  '/operations': typeof DashboardOperationsRoute
   '/reports': typeof DashboardReportsRoute
   '/settings': typeof DashboardSettingsRoute
+  '/shelters': typeof DashboardSheltersRoute
   '/shifts': typeof DashboardShiftsRoute
+  '/about': typeof PublicAboutRoute
+  '/public-shifts': typeof PublicPublicShiftsRoute
+  '/report': typeof PublicReportRoute
+  '/tracking': typeof PublicTrackingRoute
+  '/transparency': typeof PublicTransparencyRoute
   '/case/$caseId': typeof DashboardCaseCaseIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteWithChildren
+  '/_public': typeof PublicRouteWithChildren
   '/login': typeof LoginRoute
   '/_dashboard/alerts': typeof DashboardAlertsRoute
   '/_dashboard/cases': typeof DashboardCasesRoute
   '/_dashboard/dashboard': typeof DashboardDashboardRoute
+  '/_dashboard/operations': typeof DashboardOperationsRoute
   '/_dashboard/reports': typeof DashboardReportsRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
+  '/_dashboard/shelters': typeof DashboardSheltersRoute
   '/_dashboard/shifts': typeof DashboardShiftsRoute
+  '/_public/about': typeof PublicAboutRoute
+  '/_public/public-shifts': typeof PublicPublicShiftsRoute
+  '/_public/report': typeof PublicReportRoute
+  '/_public/tracking': typeof PublicTrackingRoute
+  '/_public/transparency': typeof PublicTransparencyRoute
   '/_dashboard/case/$caseId': typeof DashboardCaseCaseIdRoute
 }
 export interface FileRouteTypes {
@@ -113,9 +182,16 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/cases'
     | '/dashboard'
+    | '/operations'
     | '/reports'
     | '/settings'
+    | '/shelters'
     | '/shifts'
+    | '/about'
+    | '/public-shifts'
+    | '/report'
+    | '/tracking'
+    | '/transparency'
     | '/case/$caseId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -124,27 +200,43 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/cases'
     | '/dashboard'
+    | '/operations'
     | '/reports'
     | '/settings'
+    | '/shelters'
     | '/shifts'
+    | '/about'
+    | '/public-shifts'
+    | '/report'
+    | '/tracking'
+    | '/transparency'
     | '/case/$caseId'
   id:
     | '__root__'
     | '/'
     | '/_dashboard'
+    | '/_public'
     | '/login'
     | '/_dashboard/alerts'
     | '/_dashboard/cases'
     | '/_dashboard/dashboard'
+    | '/_dashboard/operations'
     | '/_dashboard/reports'
     | '/_dashboard/settings'
+    | '/_dashboard/shelters'
     | '/_dashboard/shifts'
+    | '/_public/about'
+    | '/_public/public-shifts'
+    | '/_public/report'
+    | '/_public/tracking'
+    | '/_public/transparency'
     | '/_dashboard/case/$caseId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  PublicRoute: typeof PublicRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -162,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -192,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDashboardRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/operations': {
+      id: '/_dashboard/operations'
+      path: '/operations'
+      fullPath: '/operations'
+      preLoaderRoute: typeof DashboardOperationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/reports': {
       id: '/_dashboard/reports'
       path: '/reports'
@@ -206,12 +312,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/shelters': {
+      id: '/_dashboard/shelters'
+      path: '/shelters'
+      fullPath: '/shelters'
+      preLoaderRoute: typeof DashboardSheltersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_dashboard/shifts': {
       id: '/_dashboard/shifts'
       path: '/shifts'
       fullPath: '/shifts'
       preLoaderRoute: typeof DashboardShiftsRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/_public/about': {
+      id: '/_public/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof PublicAboutRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/public-shifts': {
+      id: '/_public/public-shifts'
+      path: '/public-shifts'
+      fullPath: '/public-shifts'
+      preLoaderRoute: typeof PublicPublicShiftsRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/report': {
+      id: '/_public/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof PublicReportRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/tracking': {
+      id: '/_public/tracking'
+      path: '/tracking'
+      fullPath: '/tracking'
+      preLoaderRoute: typeof PublicTrackingRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/transparency': {
+      id: '/_public/transparency'
+      path: '/transparency'
+      fullPath: '/transparency'
+      preLoaderRoute: typeof PublicTransparencyRouteImport
+      parentRoute: typeof PublicRoute
     }
     '/_dashboard/case/$caseId': {
       id: '/_dashboard/case/$caseId'
@@ -227,8 +375,10 @@ interface DashboardRouteChildren {
   DashboardAlertsRoute: typeof DashboardAlertsRoute
   DashboardCasesRoute: typeof DashboardCasesRoute
   DashboardDashboardRoute: typeof DashboardDashboardRoute
+  DashboardOperationsRoute: typeof DashboardOperationsRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSheltersRoute: typeof DashboardSheltersRoute
   DashboardShiftsRoute: typeof DashboardShiftsRoute
   DashboardCaseCaseIdRoute: typeof DashboardCaseCaseIdRoute
 }
@@ -237,8 +387,10 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAlertsRoute: DashboardAlertsRoute,
   DashboardCasesRoute: DashboardCasesRoute,
   DashboardDashboardRoute: DashboardDashboardRoute,
+  DashboardOperationsRoute: DashboardOperationsRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSheltersRoute: DashboardSheltersRoute,
   DashboardShiftsRoute: DashboardShiftsRoute,
   DashboardCaseCaseIdRoute: DashboardCaseCaseIdRoute,
 }
@@ -247,9 +399,29 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface PublicRouteChildren {
+  PublicAboutRoute: typeof PublicAboutRoute
+  PublicPublicShiftsRoute: typeof PublicPublicShiftsRoute
+  PublicReportRoute: typeof PublicReportRoute
+  PublicTrackingRoute: typeof PublicTrackingRoute
+  PublicTransparencyRoute: typeof PublicTransparencyRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicAboutRoute: PublicAboutRoute,
+  PublicPublicShiftsRoute: PublicPublicShiftsRoute,
+  PublicReportRoute: PublicReportRoute,
+  PublicTrackingRoute: PublicTrackingRoute,
+  PublicTransparencyRoute: PublicTransparencyRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  PublicRoute: PublicRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

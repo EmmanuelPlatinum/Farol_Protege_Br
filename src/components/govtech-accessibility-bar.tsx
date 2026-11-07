@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Contrast, Ear, Languages, Moon, Sun, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -103,12 +104,12 @@ export function GovtechAccessibilityBar() {
           >
             {tx("Menu [2]", "Menu [2]", "Menú [2]")}
           </a>
-          <a
-            href="#acompanhar"
+          <Link
+            to="/tracking"
             className="hidden hover:text-foreground md:inline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             {tx("Consulta PIN [3]", "PIN Query [3]", "Consulta PIN [3]")}
-          </a>
+          </Link>
         </div>
 
         {/* Ferramentas de Acessibilidade */}

@@ -154,16 +154,16 @@ function Reports() {
       const matched = Object.keys(counts).find((k) =>
         c.address.toLowerCase().includes(k.toLowerCase())
       );
-      if (matched) counts[matched] += 1;
-      else counts["Centro"] += 1;
+      if (matched) counts[matched] = (counts[matched] ?? 0) + 1;
+      else counts["Centro"] = (counts["Centro"] ?? 0) + 1;
     });
 
     publicReports.forEach((r) => {
       const matched = Object.keys(counts).find((k) =>
         r.region.toLowerCase().includes(k.toLowerCase())
       );
-      if (matched) counts[matched] += 1;
-      else counts["Vila Nova"] += 1;
+      if (matched) counts[matched] = (counts[matched] ?? 0) + 1;
+      else counts["Vila Nova"] = (counts["Vila Nova"] ?? 0) + 1;
     });
 
     return Object.entries(counts).map(([region, total], i) => ({

@@ -42,8 +42,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GovtechAccessibilityBar } from "@/components/govtech-accessibility-bar";
 import { FarolProtegeLogo } from "@/components/farol-logo";
+import { PublicSiteHeader } from "@/components/public-site-layout";
 import { useI18n, useTx } from "@/lib/i18n";
 import { landing } from "@/lib/landing-i18n";
 import {
@@ -447,81 +447,7 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      {/* 1. Barra Superior de Acessibilidade Governamental (e-MAG / W3C) */}
-      <GovtechAccessibilityBar />
-
-      {/* 2. Menu de Navegação Funcional (Padrão GovTech / Portal Público) */}
-      <header
-        id="menu"
-        className="sticky top-0 z-30 border-b border-border/80 bg-background/95 backdrop-blur-md transition-colors"
-      >
-        <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-4 md:px-6">
-          <Link to="/" className="flex items-center">
-            <FarolProtegeLogo size="md" showSubtitle />
-          </Link>
-
-          {/* Links do Menu de Navegação Funcional */}
-          <nav className="hidden lg:flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-            <Link
-              to="/"
-              className="rounded-lg px-3 py-1.5 text-foreground hover:bg-muted transition-colors"
-            >
-              Home
-            </Link>
-            <a
-              href="#entenda"
-              className="rounded-lg px-3 py-1.5 hover:text-foreground hover:bg-muted transition-colors"
-            >
-              {tx("Entenda o Conselho", "About Council", "Sobre el Consejo")}
-            </a>
-            <a
-              href="#denuncia"
-              className="rounded-lg px-3 py-1.5 hover:text-foreground hover:bg-muted transition-colors"
-            >
-              {tx("Denúncia", "Report", "Denuncia")}
-            </a>
-            <Link
-              to="/shifts"
-              className="rounded-lg px-3 py-1.5 hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
-            >
-              <span>{tx("Plantões", "Shifts", "Guardias")}</span>
-              <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-bold">
-                24h
-              </Badge>
-            </Link>
-            <a
-              href="#acompanhar"
-              onClick={() => setTrackingModalOpen(true)}
-              className="rounded-lg px-3 py-1.5 hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1 text-sky-600 dark:text-sky-400 font-semibold"
-            >
-              <Search className="size-3.5" />
-              <span>{tx("Acompanhar PIN", "Track PIN", "Seguir PIN")}</span>
-            </a>
-            <Link
-              to="/reports"
-              className="rounded-lg px-3 py-1.5 hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
-            >
-              <span>{tx("Transparência", "Transparency", "Transparencia")}</span>
-              <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
-                CMDCA
-              </Badge>
-            </Link>
-          </nav>
-
-          {/* Botão de Destaque na Navbar: Redireciona Obrigatoriamente para /login */}
-          <div className="flex items-center gap-2">
-            <Button
-              asChild
-              className="h-10 px-4 text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs gap-2"
-            >
-              <Link to="/login">
-                <Lock className="size-3.5" />
-                <span>{tx("Acessar o Painel", "Access Dashboard", "Acceder al Panel")}</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <PublicSiteHeader />
 
       {/* 3. Hero Section (Padrão Defensoria Pública / Governo Digital) */}
       <section
@@ -550,10 +476,10 @@ function Landing() {
               size="lg"
               className="h-12 px-6 text-base font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
             >
-              <a href="#denuncia">
+              <Link to="/report">
                 <ShieldCheck className="size-5 mr-1" />
                 <span>{L.cta}</span>
-              </a>
+              </Link>
             </Button>
 
             {/* Botão Azul Farol (#0284C7) para Busca / PIN */}
@@ -822,7 +748,7 @@ function Landing() {
             </div>
 
             <Button asChild variant="outline" className="gap-2 font-semibold border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30">
-              <Link to="/shifts">
+              <Link to="/public-shifts">
                 <Calendar className="size-4" />
                 <span>{tx("Ver Escala Semanal de Plantões", "View Weekly Shift Schedule", "Ver Turnos de Guardia")}</span>
               </Link>
@@ -879,7 +805,7 @@ function Landing() {
                     size="sm"
                     className="w-full text-xs font-semibold text-primary hover:bg-primary/10 gap-1 justify-center"
                   >
-                    <Link to="/shifts">
+                    <Link to="/public-shifts">
                       <span>{tx("Consultar Escala", "View Shift", "Ver Guardia")}</span>
                       <ArrowRight className="size-3.5" />
                     </Link>
@@ -911,11 +837,12 @@ function Landing() {
                 {tx("Navegação Cidadã", "Citizen Navigation", "Navegación")}
               </p>
               <ul className="space-y-2 text-xs">
-                <li><a href="#conteudo" className="hover:text-foreground">Início</a></li>
-                <li><a href="#entenda" className="hover:text-foreground">Entenda o Conselho</a></li>
-                <li><a href="#denuncia" className="hover:text-foreground">Denúncia Anônima</a></li>
-                <li><Link to="/shifts" className="hover:text-foreground">Escala de Plantões</Link></li>
-                <li><Link to="/reports" className="hover:text-foreground">Transparência CMDCA</Link></li>
+                <li><Link to="/" className="hover:text-foreground">Início</Link></li>
+                <li><Link to="/about" className="hover:text-foreground">Entenda o Conselho</Link></li>
+                <li><Link to="/report" className="hover:text-foreground">Denúncia Anônima</Link></li>
+                <li><Link to="/public-shifts" className="hover:text-foreground">Escala de Plantões</Link></li>
+                <li><Link to="/tracking" className="hover:text-foreground">Acompanhar PIN</Link></li>
+                <li><Link to="/transparency" className="hover:text-foreground">Transparência CMDCA</Link></li>
               </ul>
             </div>
 
