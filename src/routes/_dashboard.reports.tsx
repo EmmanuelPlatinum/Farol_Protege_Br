@@ -32,6 +32,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/app-header";
 import { useI18n, useTx } from "@/lib/i18n";
 import { useCases } from "@/lib/cases-store";
+import { maskAddress } from "@/lib/privacy-store";
 import { usePublicReports } from "@/lib/reports-store";
 
 export const Route = createFileRoute("/_dashboard/reports")({
@@ -179,7 +180,7 @@ function Reports() {
       "Protocolo_ID",
       "Data_Registro",
       "Tipo_Violacao",
-      "Bairro_Regiao",
+      "Endereco_Anonimizado",
       "Nivel_Risco",
       "Status_Procedimento",
       "Conselheiro_Responsavel",
@@ -191,7 +192,7 @@ function Reports() {
         `CASO-#${c.id}`,
         c.date,
         `"${c.type}"`,
-        `"${c.address.split("—")[1]?.trim() || c.address}"`,
+        `"${maskAddress(c.address)}"`,
         c.risk.toUpperCase(),
         c.status.toUpperCase(),
         `"${c.counselor}"`,

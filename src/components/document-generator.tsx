@@ -79,7 +79,7 @@ const templates = [
 
 export function DocumentGenerator({ c }: { c: Case }) {
   const tx = useTx();
-  const { maskName, maskFamily, lgpdMode } = usePrivacy();
+  const { maskName, maskFamily, maskAddress, lgpdMode } = usePrivacy();
   const [open, setOpen] = useState(false);
   const [tpl, setTpl] = useState<(typeof templates)[number] | null>(null);
 
@@ -241,7 +241,7 @@ export function DocumentGenerator({ c }: { c: Case }) {
                   </p>
 
                   <p className="indent-8">
-                    Trata-se de acolhimento de denúncia e acompanhamento protetivo referente à criança/adolescente <strong>{childDisplay}</strong>, com {c.age} anos de idade, pertencente à <strong>Família {familyDisplay}</strong>, residente em {c.address || "endereço em apuração sigilosa"}, em razão da constatação de <strong>{c.type.toLowerCase()}</strong>.
+                    Trata-se de acolhimento de denúncia e acompanhamento protetivo referente à criança/adolescente <strong>{childDisplay}</strong>, com {c.age} anos de idade, pertencente à <strong>Família {familyDisplay}</strong>, residente em {c.address ? maskAddress(c.address) : "endereço em apuração sigilosa"}, em razão da constatação de <strong>{c.type.toLowerCase()}</strong>.
                   </p>
 
                   <p className="indent-8 text-neutral-800 italic bg-neutral-50 p-3 rounded border border-neutral-200">

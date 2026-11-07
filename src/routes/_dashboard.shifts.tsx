@@ -504,7 +504,7 @@ function Shifts() {
                                   {counselors[activeIndex]}
                                 </span>
                                 <span className="text-[11px] text-muted-foreground">
-                                {periodLabel}
+                                  {periodLabel}
                                 </span>
                               </div>
                             </div>

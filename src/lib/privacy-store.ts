@@ -86,6 +86,14 @@ export function maskFamily(family: string, enabled = true): string {
   return `${trimmed.charAt(0).toUpperCase()}.`;
 }
 
+/** Hides addresses in LGPD mode, keeping only the last segment (e.g. neighbourhood). */
+export function maskAddress(address: string, enabled = true): string {
+  if (!enabled || !address) return address;
+  const parts = address.split(/[,\-–—]/).map((p) => p.trim()).filter(Boolean);
+  const tail = parts.length > 1 ? parts[parts.length - 1] : "";
+  return tail ? `Endereço sigiloso · ${tail}` : "Endereço sigiloso";
+}
+
 export function setLgpdMode(val: boolean) {
   lgpdMode = val;
   emit();
@@ -105,5 +113,6 @@ export function usePrivacy() {
     toggleLgpdMode,
     maskName: (name: string) => maskName(name, isLgpdActive),
     maskFamily: (fam: string) => maskFamily(fam, isLgpdActive),
+    maskAddress: (a: string) => maskAddress(a, isLgpdActive),
   };
 }

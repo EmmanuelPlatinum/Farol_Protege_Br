@@ -43,7 +43,7 @@ function CaseDetails() {
   const { caseId } = Route.useParams();
   const { t } = useI18n();
   const tx = useTx();
-  const { maskFamily, maskName, lgpdMode } = usePrivacy();
+  const { maskFamily, maskName, maskAddress, lgpdMode } = usePrivacy();
   const c = useCases().find((x) => x.id === caseId);
   const back = (
     <Button asChild variant="ghost" className="mb-4 -ml-3">
@@ -105,7 +105,7 @@ function CaseDetails() {
             <Info
               icon={MapPin}
               label={tx("Endereço", "Address", "Dirección")}
-              value={c.address || "—"}
+              value={c.address ? maskAddress(c.address) : "—"}
             />
             <Info icon={User} label={t.cases.counselor} value={c.counselor} />
             <div>

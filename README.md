@@ -38,7 +38,7 @@ Ensure the UI looks polished, uses proper spacing (padding/margins), and looks g
 
 This project was built with [Lovable](https://lovable.dev).
 
-**Live app**: https://tutele-protege-br.lovable.app
+**Live app**: [https://farolprotege.lovable.app](https://farolprotege.lovable.app)
 
 ## Build with Lovable
 
