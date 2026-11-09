@@ -5,6 +5,17 @@ import {
   findPublicReportByPin,
   addPublicReport,
 } from "@/lib/reports-store";
+import { isSupportNeed } from "@/lib/protection-types";
+
+describe("Protection triage", () => {
+  it("accepts only the supported diagnosis/suspicion choices", () => {
+    expect(isSupportNeed("confirmed")).toBe(true);
+    expect(isSupportNeed("suspected")).toBe(true);
+    expect(isSupportNeed("none")).toBe(true);
+    expect(isSupportNeed("unknown")).toBe(true);
+    expect(isSupportNeed("other")).toBe(false);
+  });
+});
 
 describe("LGPD Privacy & Name Masking", () => {
   it("masks child full names into initials", () => {
@@ -61,6 +72,7 @@ describe("Public Reports & PIN Tracking", () => {
       type: "Negligência",
       place: "Centro",
       desc: "Situação acompanhada pela comunidade",
+      supportNeed: "suspected",
     });
 
     expect(created.pin).toMatch(/^#PROT-\d{4}$/);
@@ -70,6 +82,6 @@ describe("Public Reports & PIN Tracking", () => {
     expect(fetched).not.toBeNull();
     expect(fetched?.pin).toBe(created.pin);
     expect(fetched?.type).toBe("Negligência");
+    expect(fetched?.supportNeed).toBe("suspected");
   });
 });
-

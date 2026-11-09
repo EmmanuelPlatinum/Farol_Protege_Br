@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, HeartHandshake, PhoneCall, ShieldCheck } from "lucide-react";
+import { BookOpen, HeartHandshake, MapPin, PhoneCall, ShieldCheck } from "lucide-react";
 import { landing } from "@/lib/landing-i18n";
 import { useI18n, useTx } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +62,16 @@ function About() {
           <Button asChild variant="outline">
             <Link to="/public-shifts">
               {tx("Consultar plantões", "View duty roster", "Consultar guardias")}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/conselhos">
+              <MapPin aria-hidden="true" className="mr-1.5 size-4" />
+              {tx(
+                "Encontrar meu Conselho",
+                "Find my Council",
+                "Encontrar mi Consejo",
+              )}
             </Link>
           </Button>
         </div>

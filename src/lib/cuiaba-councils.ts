@@ -8,6 +8,8 @@ export type Council = {
   lat: number;
   lng: number;
   address: string;
+  verifiedPublicAddress?: string;
+  verifiedPublicPhone?: string;
   neighborhoods: { name: string; cases: number; main: Violation }[];
   counselors: { name: string; shift: string }[];
 };

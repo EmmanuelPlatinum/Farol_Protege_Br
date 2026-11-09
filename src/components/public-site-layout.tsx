@@ -64,6 +64,21 @@ export function PublicSiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <Button asChild variant="outline" className="h-9 px-2.5 text-xs sm:px-3 sm:text-sm">
+              <Link
+                to="/conselhos"
+                aria-label={tx(
+                  "Encontre seu Conselho Tutelar",
+                  "Find your Guardianship Council",
+                  "Encuentre su Consejo Tutelar",
+                )}
+              >
+                <Map className="size-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">
+                  {tx("Encontre seu Conselho", "Find your Council", "Encuentre su Consejo")}
+                </span>
+              </Link>
+            </Button>
             <Button asChild className="h-9 px-3 text-xs sm:text-sm">
               <Link to="/login">
                 <ShieldCheck className="mr-1.5 size-4" />
@@ -98,6 +113,7 @@ export function PublicSiteHeader() {
                         if (details) details.open = false;
                       }}
                     >
+                      {item.to === "/conselhos" && <Map className="mr-1 inline size-4" />}
                       {tx(item.label, item.en, item.es)}
                     </Link>
                   );

@@ -1,13 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { FolderOpen, Home, FileCheck, AlertTriangle, TrendingUp, FileText, Gavel, Send } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { FolderOpen, Home, FileCheck, AlertTriangle, TrendingUp, FileText, Gavel, Send, ShieldCheck } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { PageHeader } from "@/components/app-header";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, useTx } from "@/lib/i18n";
 import { useCases } from "@/lib/cases-store";
 import { usePrivacy } from "@/lib/privacy-store";
+import { isDueWithinDays } from "@/lib/protective-measures";
 
 export const Route = createFileRoute("/_dashboard/dashboard")({
   head: () => ({
@@ -27,9 +28,18 @@ const icons = [Home, FileText, Send, Gavel, FileCheck];
 
 function Dashboard() {
   const { t } = useI18n();
+  const tx = useTx();
   const cases = useCases();
   const { maskFamily, lgpdMode } = usePrivacy();
   const activeCasesCount = cases.filter((c) => c.status !== "closed").length;
+  const measuresDueThisWeek = cases.reduce(
+    (total, caseRecord) =>
+      total +
+      (caseRecord.protectiveMeasures ?? []).filter((measure) =>
+        isDueWithinDays(measure, 7),
+      ).length,
+    0,
+  );
   const data = values.map((v, i) => ({ day: t.days[i], reports: v }));
   const chartConfig = { reports: { ...config.reports, label: t.chartLabel } } satisfies ChartConfig;
   const kpis = [
@@ -40,7 +50,7 @@ function Dashboard() {
   return (
     <>
       <PageHeader title={t.greeting} subtitle={t.greetingSub} />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((k) => (
           <Card key={k.label} className={k.urgent ? "shadow-card border-destructive/40" : "shadow-card"}>
             <CardContent className="p-5">
@@ -60,6 +70,29 @@ function Dashboard() {
             </CardContent>
           </Card>
         ))}
+        <Card className="shadow-card border-amber-500/30">
+          <CardContent className="p-5">
+            <Link
+              to="/cases"
+              search={{ measuresDue: "week" }}
+              className="block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {tx("Medidas Protetivas Vencendo nesta Semana", "Protective Measures Due This Week", "Medidas de Protección que Vencen esta Semana")}
+                </p>
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning">
+                  <ShieldCheck className="size-4" />
+                </div>
+              </div>
+              <p className="mt-3 text-3xl font-semibold tracking-tight">{measuresDueThisWeek}</p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-primary">
+                {tx("Ver casos com prazo próximo", "View cases with upcoming deadlines", "Ver casos con plazos próximos")}
+                <span aria-hidden="true">→</span>
+              </p>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="shadow-card lg:col-span-2">

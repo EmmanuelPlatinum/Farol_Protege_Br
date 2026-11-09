@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 
 const LGPD_STORAGE_KEY = "farol_lgpd_mode";
 
-let lgpdMode = false;
+let lgpdMode = true;
 let loaded = false;
 const listeners = new Set<() => void>();
 
@@ -11,8 +11,8 @@ function load() {
   loaded = true;
   try {
     const raw = localStorage.getItem(LGPD_STORAGE_KEY);
-    // Default to true for enhanced ECA / LGPD privacy if not set, or restore saved preference
-    lgpdMode = raw !== null ? raw === "true" : true;
+    lgpdMode = true;
+    if (raw !== "true") localStorage.setItem(LGPD_STORAGE_KEY, "true");
   } catch {
     lgpdMode = true;
   }

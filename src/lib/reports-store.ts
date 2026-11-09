@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from "react";
+import type { SupportNeed } from "@/lib/protection-types";
+import { supabase } from "@/lib/supabase";
 
 export type ReportStatus =
   | "received"
@@ -21,12 +23,76 @@ export type PublicReport = {
   pin: string; // e.g. "#PROT-8921"
   date: string; // YYYY-MM-DD HH:mm
   type: string; // e.g. "Violência doméstica"
+  supportNeed?: SupportNeed;
   region: string; // e.g. "Centro"
   status: ReportStatus;
   statusLabel: string;
   summary: string;
   timeline: ReportTimelineStep[];
 };
+
+export async function submitCloudPublicReport(input: {
+  councilRegion: string;
+  type: string;
+  approximateArea: string;
+  supportNeed: SupportNeed;
+  description: string;
+}) {
+  if (!supabase) throw new Error("O Lovable Cloud não está configurado neste ambiente.");
+  const { data, error } = await supabase.rpc("submit_public_report", {
+    p_council_region: input.councilRegion,
+    p_violation_type: input.type,
+    p_approximate_area: input.approximateArea,
+    p_support_need: input.supportNeed,
+    p_description: input.description,
+  });
+  if (error) throw error;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || typeof row.protocol !== "string") {
+    throw new Error("O servidor não retornou o protocolo da denúncia.");
+  }
+  return { protocol: row.protocol as string, createdAt: row.created_at as string };
+}
+
+export async function getCloudPublicReportStatus(rawProtocol: string) {
+  if (!supabase) throw new Error("O Lovable Cloud não está configurado neste ambiente.");
+  const { data, error } = await supabase.rpc("get_public_report_status", {
+    p_protocol: rawProtocol.trim().toUpperCase(),
+  });
+  if (error) throw error;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || typeof row.protocol !== "string") return null;
+  const labels: Record<ReportStatus, string> = {
+    received: "Recebida pelo Conselho",
+    screening: "Em triagem",
+    visit_scheduled: "Visita agendada",
+    visit_completed: "Visita realizada",
+    referred_network: "Encaminhada à rede de proteção",
+    referred_mp: "Encaminhada ao Ministério Público",
+    protective_action: "Providência protetiva registrada",
+  };
+  const status = row.status as ReportStatus;
+  if (!(status in labels)) throw new Error("O servidor retornou um status de denúncia inválido.");
+  const createdAt = new Date(row.created_at as string);
+  return {
+    pin: row.protocol as string,
+    date: createdAt.toLocaleString("pt-BR"),
+    type: "Denúncia cidadã",
+    region: "",
+    status,
+    statusLabel: labels[status],
+    summary: "Consulta limitada ao protocolo; detalhes do relato não são exibidos neste canal público.",
+    timeline: [
+      {
+        stepNumber: 1,
+        date: createdAt.toLocaleString("pt-BR"),
+        title: labels[status],
+        description: "Atualização pública sem dados pessoais ou conteúdo do relato.",
+        completed: true,
+      },
+    ],
+  } satisfies PublicReport;
+}
 
 const seedReports = (): PublicReport[] => [
   {
@@ -268,6 +334,7 @@ export function addPublicReport(data: {
   type: string;
   place?: string;
   desc?: string;
+  supportNeed?: SupportNeed;
 }): PublicReport {
   load();
   const pinNumber = Math.floor(1000 + Math.random() * 9000);
@@ -288,6 +355,7 @@ export function addPublicReport(data: {
     pin,
     date: stamp,
     type: data.type || "Situação de vulnerabilidade",
+    ...(data.supportNeed ? { supportNeed: data.supportNeed } : {}),
     region: data.place?.trim() || "Região Municipal",
     status: "screening",
     statusLabel: "Em triagem e análise técnica",
@@ -337,4 +405,3 @@ export function addPublicReport(data: {
 export function usePublicReports() {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
-

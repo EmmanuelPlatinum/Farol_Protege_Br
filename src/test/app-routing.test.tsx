@@ -27,6 +27,7 @@ describe("App routing", () => {
     const publicRoutes = [
       ["/about", "/_public/about"],
       ["/report", "/_public/report"],
+      ["/conselhos", "/_public/conselhos"],
       ["/tracking", "/_public/tracking"],
       ["/public-shifts", "/_public/public-shifts"],
       ["/transparency", "/_public/transparency"],

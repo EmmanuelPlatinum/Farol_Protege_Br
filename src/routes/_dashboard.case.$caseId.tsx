@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import {
   Activity,
   ArrowLeft,
@@ -12,15 +14,22 @@ import {
   Syringe,
   User,
   Users,
+  Eye,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RiskBadge } from "@/components/risk-badge";
 import { DocumentGenerator } from "@/components/document-generator";
-import { useCases } from "@/lib/cases-store";
+import { ProtectiveMeasuresChecklist } from "@/components/protective-measures-checklist";
+import { InterinstitutionalCommunications } from "@/components/interinstitutional-communications";
+import { LgpdAuditPanel } from "@/components/lgpd-audit-panel";
+import { updateCaseStatus, useCases } from "@/lib/cases-store";
 import { useI18n, useTx } from "@/lib/i18n";
 import { usePrivacy } from "@/lib/privacy-store";
+import { useGovtechProfile } from "@/lib/govtech-profile";
+import { appendAuditEvents, setActiveAuditCase } from "@/lib/audit-store";
 
 export const Route = createFileRoute("/_dashboard/case/$caseId")({
   head: ({ params }) => ({
@@ -39,15 +48,52 @@ export const Route = createFileRoute("/_dashboard/case/$caseId")({
 
 const variant = { open: "warning", urgent: "danger", closed: "success" } as const;
 
+function UnmaskedCaseViewAudit({ caseId, enabled }: { caseId: string; enabled: boolean }) {
+  const { profile } = useGovtechProfile();
+  const lastRecorded = useRef("");
+
+  useEffect(() => {
+    setActiveAuditCase(caseId);
+    return () => {
+      setActiveAuditCase(null);
+    };
+  }, [caseId]);
+
+  useEffect(() => {
+    if (enabled) return;
+    const key = `${caseId}:${profile}`;
+    if (lastRecorded.current === key) return;
+    const record = async () => {
+      try {
+        await appendAuditEvents([
+          {
+            caseId,
+            action: "case_viewed_unmasked",
+            summary: "Caso aberto sem máscara de sigilo.",
+            actorProfile: profile,
+          },
+        ]);
+        lastRecorded.current = key;
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Falha ao registrar acesso sem máscara.");
+      }
+    };
+    void record();
+  }, [caseId, enabled, profile]);
+
+  return null;
+}
+
 function CaseDetails() {
   const { caseId } = Route.useParams();
   const { t } = useI18n();
   const tx = useTx();
   const { maskFamily, maskName, maskAddress, lgpdMode } = usePrivacy();
+  const { profile, isReadOnly } = useGovtechProfile();
   const c = useCases().find((x) => x.id === caseId);
   const back = (
     <Button asChild variant="ghost" className="mb-4 -ml-3">
-      <Link to="/cases">
+      <Link to="/cases" search={{}}>
         <ArrowLeft /> {tx("Voltar para casos", "Back to cases", "Volver a los casos")}
       </Link>
     </Button>
@@ -65,6 +111,7 @@ function CaseDetails() {
   return (
     <>
       {back}
+      <UnmaskedCaseViewAudit caseId={c.id} enabled={lgpdMode} />
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
@@ -85,12 +132,54 @@ function CaseDetails() {
           </h1>
           <div className="mt-2 flex flex-wrap gap-2">
             <RiskBadge risk={c.risk} />
-            <Badge variant={variant[c.status]}>{t.status[c.status]}</Badge>
+            {!isReadOnly ? (
+              <Select
+                value={c.status}
+                onValueChange={(value) => {
+                  if (value !== "open" && value !== "urgent" && value !== "closed") return;
+                  void updateCaseStatus(c.id, value).then((changed) => {
+                    if (changed) {
+                      toast.success(tx("Status do caso atualizado e auditado.", "Case status updated and audited.", "Estado del caso actualizado y auditado."));
+                    }
+                  }).catch((error: unknown) => {
+                    toast.error(error instanceof Error ? error.message : tx("Não foi possível registrar a alteração de status.", "Could not record the status change.", "No se pudo registrar el cambio de estado."));
+                  });
+                }}
+              >
+                <SelectTrigger aria-label={tx("Alterar status do caso", "Change case status", "Cambiar estado del caso")} className="h-6 w-auto gap-1 px-2 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["open", "urgent", "closed"] as const).map((status) => (
+                    <SelectItem key={status} value={status}>{t.status[status]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : <Badge variant={variant[c.status]}>{t.status[c.status]}</Badge>}
             <Badge variant="outline">{c.type}</Badge>
           </div>
         </div>
-        <DocumentGenerator c={c} />
+        {!isReadOnly && <DocumentGenerator c={c} />}
       </div>
+      {isReadOnly && (
+        <div role="status" className="mb-6 flex items-start gap-3 rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 text-sm">
+          <Eye aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-blue-600" />
+          <div>
+            <p className="font-medium">
+              {profile === "prosecutor"
+                ? tx("Perfil simulado: Promotoria da Infância (MP)", "Simulated profile: Children's Prosecutor (MP)", "Perfil simulado: Fiscalía de Infancia (MP)")
+                : tx("Perfil simulado: Juizado da Infância", "Simulated profile: Juvenile Court", "Perfil simulado: Juzgado de Infancia")}
+            </p>
+            <p className="text-muted-foreground">
+              {tx(
+                "Visualização somente leitura. Nenhum acesso institucional, autenticação ou poder decisório é concedido por esta seleção.",
+                "Read-only view. This selection grants no institutional access, authentication, or decision-making authority.",
+                "Vista de solo lectura. Esta selección no concede acceso institucional, autenticación ni autoridad para decidir.",
+              )}
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="shadow-card">
           <CardHeader>
@@ -102,6 +191,21 @@ function CaseDetails() {
               label={tx("Criança / adolescente", "Child / teen", "Niño / adolescente")}
               value={`${maskName(c.child)} · ${c.age} ${tx("anos", "years", "años")}`}
             />
+            {c.supportNeed && (
+              <Info
+                icon={ShieldAlert}
+                label={tx("Laudo/suspeita de TEA ou deficiência", "Autism/disability diagnosis or suspicion", "Diagnóstico/sospecha de autismo o discapacidad")}
+                value={
+                  c.supportNeed === "confirmed"
+                    ? tx("Laudo informado", "Diagnosis reported", "Diagnóstico informado")
+                    : c.supportNeed === "suspected"
+                      ? tx("Suspeita informada", "Suspicion reported", "Sospecha informada")
+                      : c.supportNeed === "none"
+                        ? tx("Não", "No", "No")
+                        : tx("Não informado", "Not informed", "No informado")
+                }
+              />
+            )}
             <Info
               icon={MapPin}
               label={tx("Endereço", "Address", "Dirección")}
@@ -136,6 +240,8 @@ function CaseDetails() {
           </CardContent>
         </Card>
       </div>
+      <InterinstitutionalCommunications caseRecord={c} />
+      <LgpdAuditPanel caseId={c.id} />
       <Card className="mt-6 shadow-card">
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -253,6 +359,7 @@ function CaseDetails() {
           </div>
         </CardContent>
       </Card>
+      <ProtectiveMeasuresChecklist caseRecord={c} readOnly={isReadOnly} />
     </>
   );
 }

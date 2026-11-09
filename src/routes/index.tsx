@@ -12,6 +12,7 @@ import {
   HeartHandshake,
   HelpCircle,
   Lock,
+  MapPin,
   PhoneCall,
   Search,
   Shield,
@@ -45,6 +46,7 @@ import {
 import { FarolProtegeLogo } from "@/components/farol-logo";
 import { PublicSiteHeader } from "@/components/public-site-layout";
 import { useI18n, useTx } from "@/lib/i18n";
+import { isSupportNeed, type SupportNeed } from "@/lib/protection-types";
 import { landing } from "@/lib/landing-i18n";
 import {
   addPublicReport,
@@ -240,6 +242,7 @@ function ReportForm({
   const [type, setType] = useState("0");
   const [place, setPlace] = useState("");
   const [desc, setDesc] = useState("");
+  const [supportNeed, setSupportNeed] = useState<SupportNeed>("unknown");
   const [createdPin, setCreatedPin] = useState<string | null>(null);
 
   const submit = (e: React.FormEvent) => {
@@ -253,18 +256,20 @@ function ReportForm({
       type: L.types[Number(type)] || "Outro",
       place,
       desc,
+      supportNeed,
     });
 
     setCreatedPin(newReport.pin);
     setPlace("");
     setDesc("");
     setType("0");
+    setSupportNeed("unknown");
 
     toast.success(
       tx(
-        "Denúncia recebida com sucesso e protegida com criptografia!",
-        "Report received successfully with end-to-end encryption!",
-        "¡Denuncia recibida con éxito y protegida!"
+        "Demonstração salva neste navegador. Não foi enviada ao Conselho.",
+        "Demo saved in this browser. It was not sent to the Council.",
+        "Demostración guardada en este navegador. No se envió al Consejo.",
       )
     );
   };
@@ -275,7 +280,7 @@ function ReportForm({
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
             <ShieldCheck className="size-3.5 mr-1" />
-            {tx("Canal Oficial Seguro", "Official Secure Channel", "Canal Oficial Seguro")}
+            {tx("Formulário demonstrativo", "Demonstration form", "Formulario demostrativo")}
           </Badge>
           <span className="text-[11px] font-mono text-muted-foreground">ECA Art. 136</span>
         </div>
@@ -284,9 +289,9 @@ function ReportForm({
         </CardTitle>
         <CardDescription className="text-xs">
           {tx(
-            "Seus dados de rede ou identificadores pessoais não são gravados. Você receberá um código PIN para acompanhar.",
-            "No personal data or network identity is logged. You will receive a PIN to track.",
-            "No se almacenan datos personales. Recibirá un PIN de seguimiento."
+          "Este exemplo fica salvo apenas neste navegador e não é enviado ao Conselho. O campo sobre TEA/deficiência é informação de saúde; não inclua nomes ou detalhes clínicos.",
+          "This example is stored only in this browser and is not sent to the Council. The autism/disability field is health information; do not include names or clinical details.",
+          "Este ejemplo se guarda solo en este navegador y no se envía al Consejo. El campo sobre autismo/discapacidad es información de salud; no incluya nombres ni detalles clínicos.",
           )}
         </CardDescription>
       </CardHeader>
@@ -306,6 +311,44 @@ function ReportForm({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="report-support-need" className="text-xs font-semibold">
+              {tx(
+                "Criança possui laudo/suspeita de TEA ou deficiência física, intelectual ou sensorial?",
+                "Does the child have a diagnosis/suspected autism or physical, intellectual, or sensory disability?",
+                "¿El niño tiene diagnóstico/sospecha de autismo o discapacidad física, intelectual o sensorial?",
+              )}
+            </Label>
+            <Select
+              value={supportNeed}
+              onValueChange={(value) => {
+                if (isSupportNeed(value)) setSupportNeed(value);
+              }}
+            >
+              <SelectTrigger id="report-support-need" className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="confirmed">
+                  {tx("Sim, há laudo", "Yes, diagnosed", "Sí, con diagnóstico")}
+                </SelectItem>
+                <SelectItem value="suspected">
+                  {tx("Há suspeita, sem laudo", "Suspected, no diagnosis", "Hay sospecha, sin diagnóstico")}
+                </SelectItem>
+                <SelectItem value="none">{tx("Não", "No", "No")}</SelectItem>
+                <SelectItem value="unknown">
+                  {tx("Não informado", "Not informed", "No informado")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {tx(
+                "Informe apenas o necessário para a triagem; não inclua detalhes do laudo.",
+                "Provide only what is needed for triage; do not include diagnosis details.",
+                "Informe solo lo necesario para la evaluación; no incluya detalles del diagnóstico.",
+              )}
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold">{L.fPlace}</Label>
@@ -479,6 +522,24 @@ function Landing() {
               <Link to="/report">
                 <ShieldCheck className="size-5 mr-1" />
                 <span>{L.cta}</span>
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 px-5 text-base font-semibold border-primary/40 text-primary hover:bg-primary/5"
+            >
+              <Link to="/conselhos">
+                <MapPin aria-hidden="true" className="mr-1 size-5" />
+                <span>
+                  {tx(
+                    "Encontrar meu Conselho",
+                    "Find my Council",
+                    "Encontrar mi Consejo",
+                  )}
+                </span>
               </Link>
             </Button>
 
@@ -839,6 +900,7 @@ function Landing() {
               <ul className="space-y-2 text-xs">
                 <li><Link to="/" className="hover:text-foreground">Início</Link></li>
                 <li><Link to="/about" className="hover:text-foreground">Entenda o Conselho</Link></li>
+                <li><Link to="/conselhos" className="hover:text-foreground">{tx("Encontre seu Conselho", "Find your Council", "Encuentre su Consejo")}</Link></li>
                 <li><Link to="/report" className="hover:text-foreground">Denúncia Anônima</Link></li>
                 <li><Link to="/public-shifts" className="hover:text-foreground">Escala de Plantões</Link></li>
                 <li><Link to="/tracking" className="hover:text-foreground">Acompanhar PIN</Link></li>

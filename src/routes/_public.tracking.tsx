@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useTx } from "@/lib/i18n";
-import { findPublicReportByPin, type PublicReport } from "@/lib/reports-store";
+import { findPublicReportByPin, getCloudPublicReportStatus, type PublicReport } from "@/lib/reports-store";
+import { isLovableCloudConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_public/tracking")({
   head: () => ({ meta: [{ title: "Acompanhar protocolo — Farol Protege" }] }),
@@ -20,8 +21,9 @@ function Tracking() {
   const [pin, setPin] = useState("");
   const [result, setResult] = useState<PublicReport | null>(null);
   const [searched, setSearched] = useState(false);
+  const [searching, setSearching] = useState(false);
 
-  const search = (value = pin) => {
+  const search = async (value = pin) => {
     if (!value.trim()) {
       toast.error(
         tx(
@@ -32,17 +34,24 @@ function Tracking() {
       );
       return;
     }
-    const report = findPublicReportByPin(value);
-    setResult(report);
-    setSearched(true);
-    if (!report)
-      toast.error(
-        tx(
-          "Protocolo não localizado neste exemplo.",
-          "Protocol not found in this demo.",
-          "Protocolo no encontrado en este ejemplo.",
-        ),
-      );
+    setSearching(true);
+    try {
+      const report = isLovableCloudConfigured
+        ? await getCloudPublicReportStatus(value)
+        : findPublicReportByPin(value);
+      setResult(report);
+      setSearched(true);
+      if (!report)
+        toast.error(
+          isLovableCloudConfigured
+            ? tx("Protocolo não localizado.", "Protocol not found.", "Protocolo no encontrado.")
+            : tx("Protocolo não localizado neste exemplo.", "Protocol not found in this demo.", "Protocolo no encontrado en este ejemplo."),
+        );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tx("Não foi possível consultar o protocolo.", "Could not look up the protocol.", "No se pudo consultar el protocolo."));
+    } finally {
+      setSearching(false);
+    }
   };
 
   return (
@@ -51,9 +60,15 @@ function Tracking() {
         eyebrow={tx("CONSULTA DE PROTOCOLO", "PROTOCOL TRACKING", "CONSULTA DE PROTOCOLO")}
         title={tx("Acompanhe um protocolo", "Track a protocol", "Consulte un protocolo")}
         description={tx(
-          "Informe o PIN gerado ao registrar o relato. A consulta demonstra apenas o fluxo local de interface.",
-          "Enter the PIN generated when the report was filed. This page demonstrates a local UI flow only.",
-          "Ingrese el PIN generado al registrar el relato. Esta consulta solo demuestra un flujo local.",
+          isLovableCloudConfigured
+            ? "Informe o protocolo recebido ao enviar a denúncia. A consulta exibe apenas o status, sem revelar o conteúdo ou dados pessoais."
+            : "Informe o PIN gerado ao registrar o relato. A consulta demonstra apenas o fluxo local de interface.",
+          isLovableCloudConfigured
+            ? "Enter the protocol received when submitting the report. Only its status is shown; report content and personal data remain private."
+            : "Enter the PIN generated when the report was filed. This page demonstrates a local UI flow only.",
+          isLovableCloudConfigured
+            ? "Ingrese el protocolo recibido al enviar la denuncia. Solo se muestra el estado, sin revelar el contenido ni datos personales."
+            : "Ingrese el PIN generado al registrar el relato. Esta consulta solo demuestra un flujo local.",
         )}
       />
       <section className="mx-auto max-w-3xl px-4 py-10 md:px-6 md:py-14">
@@ -68,23 +83,23 @@ function Tracking() {
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                search();
+                void search();
               }}
               className="flex flex-col gap-3 sm:flex-row"
             >
               <Input
                 value={pin}
                 onChange={(event) => setPin(event.target.value)}
-                placeholder="#PROT-8921"
+                placeholder={isLovableCloudConfigured ? "DEN-2026-..." : "#PROT-8921"}
                 aria-label={tx("Código PIN", "PIN code", "Código PIN")}
                 className="font-mono"
               />
-              <Button type="submit">
+              <Button type="submit" disabled={searching}>
                 <Search className="mr-2 size-4" />
-                {tx("Consultar", "Search", "Consultar")}
+                {searching ? tx("Consultando…", "Searching…", "Consultando…") : tx("Consultar", "Search", "Consultar")}
               </Button>
             </form>
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {!isLovableCloudConfigured && <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span>
                 {tx("Exemplos de demonstração:", "Demo examples:", "Ejemplos de demostración:")}
               </span>
@@ -97,13 +112,13 @@ function Tracking() {
                   className="h-7 font-mono text-xs"
                   onClick={() => {
                     setPin(example);
-                    search(example);
+                    void search(example);
                   }}
                 >
                   {example}
                 </Button>
               ))}
-            </div>
+            </div>}
             {searched && (
               <div className="mt-6 border-t pt-5">
                 {result ? (
@@ -111,7 +126,7 @@ function Tracking() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="text-xs text-muted-foreground">
-                          {tx("Protocolo demonstrativo", "Demo protocol", "Protocolo demostrativo")}
+                          {isLovableCloudConfigured ? tx("Protocolo", "Protocol", "Protocolo") : tx("Protocolo demonstrativo", "Demo protocol", "Protocolo demostrativo")}
                         </p>
                         <p className="mt-1 font-mono text-xl font-bold">{result.pin}</p>
                       </div>
@@ -120,13 +135,19 @@ function Tracking() {
                     <p className="mt-4 flex items-center gap-2 text-sm">
                       <CheckCircle2 className="size-4 text-primary" />
                       {tx(
-                        "Status registrado no exemplo local",
-                        "Status shown in the local demo",
-                        "Estado registrado en el ejemplo local",
+                        isLovableCloudConfigured
+                          ? "Status público limitado; detalhes do relato são sigilosos"
+                          : "Status registrado no exemplo local",
+                        isLovableCloudConfigured
+                          ? "Limited public status; report details are confidential"
+                          : "Status shown in the local demo",
+                        isLovableCloudConfigured
+                          ? "Estado público limitado; los detalles del relato son confidenciales"
+                          : "Estado registrado en el ejemplo local",
                       )}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {tx("Data exibida no exemplo:", "Date in this demo:", "Fecha del ejemplo:")}{" "}
+                      {tx(isLovableCloudConfigured ? "Recebida em:" : "Data exibida no exemplo:", isLovableCloudConfigured ? "Received:" : "Date in this demo:", isLovableCloudConfigured ? "Recibida:" : "Fecha del ejemplo:")}{" "}
                       {result.date}
                     </p>
                     <div className="mt-4 space-y-3">

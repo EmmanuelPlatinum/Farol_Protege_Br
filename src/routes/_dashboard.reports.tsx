@@ -34,6 +34,7 @@ import { useI18n, useTx } from "@/lib/i18n";
 import { useCases } from "@/lib/cases-store";
 import { maskAddress } from "@/lib/privacy-store";
 import { usePublicReports } from "@/lib/reports-store";
+import { CloudIntakeQueue } from "@/components/cloud-intake-queue";
 
 export const Route = createFileRoute("/_dashboard/reports")({
   head: () => ({
@@ -239,6 +240,7 @@ function Reports() {
 
   return (
     <div className="space-y-6">
+      <CloudIntakeQueue />
       {/* Top Header com Botões de Ação */}
       <PageHeader
         title={tx(

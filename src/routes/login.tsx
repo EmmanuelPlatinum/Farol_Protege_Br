@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -32,6 +31,21 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LighthouseScene } from "@/components/lighthouse-scene";
 import { FarolProtegeLogo } from "@/components/farol-logo";
 import { useTx } from "@/lib/i18n";
+import {
+  registerAccount,
+  requestPasswordReset,
+  signInWithPassword,
+  startDemoSession,
+  useAuth,
+} from "@/lib/auth-store";
+import { councilRegions, isLovableCloudConfigured } from "@/lib/supabase";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -56,12 +70,15 @@ export const Route = createFileRoute("/login")({
 function Login() {
   const tx = useTx();
   const navigate = useNavigate();
+  const auth = useAuth();
 
   const [tab, setTab] = useState<"login" | "request">("login");
   const [identity, setIdentity] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [employeeRegistration, setEmployeeRegistration] = useState("");
+  const [busy, setBusy] = useState(false);
   const [recovery, setRecovery] = useState(false);
   const [requested, setRequested] = useState(false);
 
@@ -70,49 +87,71 @@ function Login() {
   const [councilRegion, setCouncilRegion] = useState("");
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("farol_login_identity");
-      if (saved) {
-        setIdentity(saved);
-        setRemember(true);
-      }
-    } catch {
-      /* optional preference */
+    if (!auth.loading && auth.user && auth.profile?.approved_at) {
+      void navigate({ to: "/dashboard", replace: true });
     }
-  }, []);
+  }, [auth.loading, auth.profile?.approved_at, auth.user, navigate]);
 
-  const handleLoginSubmit = (event: React.FormEvent) => {
+  const handleLoginSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setBusy(true);
     try {
-      if (remember) {
-        localStorage.setItem("farol_login_identity", identity);
-      } else {
-        localStorage.removeItem("farol_login_identity");
-      }
-    } catch {
-      /* optional preference */
+      await signInWithPassword(identity.trim(), password);
+      setPassword("");
+      toast.success(tx("Autenticação realizada. Verificando perfil e permissões…", "Signed in. Checking profile and permissions…", "Autenticación realizada. Verificando perfil y permisos…"));
+      await navigate({ to: "/dashboard" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tx("Não foi possível autenticar.", "Sign-in failed.", "No se pudo autenticar."));
+    } finally {
+      setBusy(false);
     }
-    setPassword("");
-    toast.info(
-      tx(
-        "Acesso demonstrativo — nenhuma credencial foi validada.",
-        "Demo access — no credentials were verified.",
-        "Acceso de demostración — no se verificaron credenciales."
-      )
-    );
-    navigate({ to: "/dashboard" });
   };
 
-  const handleRequestSubmit = (event: React.FormEvent) => {
+  const handleRequestSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setRequested(true);
-    toast.success(
-      tx(
-        "Solicitação simulada registrada com sucesso!",
-        "Simulated access request recorded!",
-        "¡Solicitud simulada registrada con éxito!"
-      )
-    );
+    if (!councilRegion) {
+      toast.error(tx("Selecione a regional de Cuiabá.", "Select a Cuiabá council region.", "Seleccione la regional de Cuiabá."));
+      return;
+    }
+    setBusy(true);
+    try {
+      const { session } = await registerAccount({
+        email: identity.trim(),
+        password: registerPassword,
+        fullName,
+        employeeRegistration,
+        councilRegion: councilRegion as (typeof councilRegions)[number]["id"],
+      });
+      setRequested(true);
+      toast.success(
+        session
+          ? tx("Cadastro enviado; o perfil aguarda aprovação administrativa.", "Registration submitted; profile awaits administrative approval.", "Registro enviado; el perfil espera aprobación administrativa.")
+          : tx("Conta criada. Verifique o e-mail e aguarde a aprovação do Conselho.", "Account created. Verify your email and await Council approval.", "Cuenta creada. Verifique el correo y espere aprobación del Consejo."),
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tx("Não foi possível solicitar acesso.", "Could not request access.", "No se pudo solicitar acceso."));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePasswordRecovery = async () => {
+    try {
+      await requestPasswordReset(identity.trim());
+      toast.success(tx("Se a conta existir, o link de redefinição será enviado ao e-mail.", "If the account exists, a reset link will be sent by email.", "Si la cuenta existe, se enviará un enlace de restablecimiento."));
+      setRecovery(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tx("Não foi possível solicitar a redefinição.", "Could not request a password reset.", "No se pudo solicitar el restablecimiento."));
+    }
+  };
+
+  const enterDemo = async () => {
+    try {
+      await startDemoSession();
+      await navigate({ to: "/dashboard" });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tx("Não foi possível iniciar a demonstração.", "Could not start demo.", "No se pudo iniciar la demostración."));
+    }
   };
 
   return (
@@ -189,9 +228,9 @@ function Login() {
             </div>
             <p className="mt-1.5 leading-relaxed text-muted-foreground">
               {tx(
-                "Interface demonstrativa sem validação de senhas. A autenticação real requer infraestrutura governamental em nuvem.",
-                "Demonstration UI without password validation. Real auth requires government cloud infrastructure.",
-                "Interfaz de demostración sin validación de contraseñas. La autenticación real requiere infraestructura en la nube."
+                "A autenticação institucional usa Lovable Cloud. O Modo Demonstração é separado e utiliza dados fictícios.",
+                "Institutional sign-in uses Lovable Cloud. Demo Mode is separate and uses fictional data.",
+                "El acceso institucional usa Lovable Cloud. El Modo Demostración es independiente y utiliza datos ficticios."
               )}
             </p>
           </div>
@@ -234,18 +273,19 @@ function Login() {
               <div className="space-y-1.5">
                 <Label htmlFor="identity" className="text-sm font-medium">
                   {tx(
-                    "Matrícula Funcional / E-mail",
-                    "Employee ID / Email",
-                    "Matrícula Funcional / Correo"
+                    "E-mail institucional",
+                    "Institutional email",
+                    "Correo institucional"
                   )}
                 </Label>
                 <Input
                   id="identity"
                   required
-                  placeholder={tx("ex: 10482 ou conselheiro@municipio.gov.br", "ex: 10482 or counselor@city.gov.br", "ej: 10482 o consejero@municipio.gov.br")}
+                  type="email"
+                  placeholder={tx("conselheiro@municipio.gov.br", "counselor@city.gov", "consejero@municipio.gov")}
                   value={identity}
                   onChange={(e) => setIdentity(e.target.value)}
-                  autoComplete="username"
+                  autoComplete="email"
                   className="h-10"
                 />
               </div>
@@ -282,17 +322,7 @@ function Login() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="remember"
-                    checked={remember}
-                    onCheckedChange={(checked) => setRemember(checked === true)}
-                  />
-                  <Label htmlFor="remember" className="cursor-pointer text-xs font-normal">
-                    {tx("Lembrar-me", "Remember me", "Recordarme")}
-                  </Label>
-                </div>
+              <div className="flex justify-end pt-1">
                 <Button
                   type="button"
                   variant="link"
@@ -303,10 +333,15 @@ function Login() {
                 </Button>
               </div>
 
-              <Button type="submit" size="lg" className="h-11 w-full gap-2 font-medium">
+              <Button type="submit" disabled={busy || !isLovableCloudConfigured} size="lg" className="h-11 w-full gap-2 font-medium">
                 <span>{tx("Acessar Sistema", "Access System", "Acceder al Sistema")}</span>
                 <ArrowRight className="size-4" />
               </Button>
+              {!isLovableCloudConfigured && (
+                <p className="text-xs text-muted-foreground">
+                  {tx("Autenticação em nuvem não configurada neste ambiente. Use o modo demonstração.", "Cloud authentication is not configured in this environment. Use demo mode.", "La autenticación en la nube no está configurada. Use el modo de demostración.")}
+                </p>
+              )}
             </form>
           )}
 
@@ -322,17 +357,17 @@ function Login() {
                     <ShieldCheck className="size-5" />
                     <span>
                       {tx(
-                        "Solicitação Simulada Registrada",
-                        "Simulated Request Recorded",
-                        "Solicitud Simulada Registrada"
+                        "Solicitação enviada · aprovação pendente",
+                        "Request submitted · approval pending",
+                        "Solicitud enviada · aprobación pendiente"
                       )}
                     </span>
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                     {tx(
-                      "Seu pedido foi registrado localmente nesta interface de demonstração. Nenhum e-mail ou dado pessoal foi transmitido externamente.",
-                      "Your request was logged locally in this demo UI. No emails or personal data were transmitted externally.",
-                      "Su solicitud fue registrada localmente en esta interfaz de demostración. No se transmitieron correos ni datos personales externamente."
+                      "A conta foi criada no Lovable Cloud. Verifique o e-mail, se solicitado, e aguarde a conferência da matrícula e regional por um administrador autorizado.",
+                      "The account was created in Lovable Cloud. Verify your email if requested, then wait for an authorized administrator to verify your employee registration and region.",
+                      "La cuenta se creó en Lovable Cloud. Verifique el correo si se solicita y espere la validación de matrícula y regional por un administrador autorizado."
                     )}
                   </p>
                   <div className="mt-4 flex gap-2">
@@ -346,15 +381,6 @@ function Login() {
                       }}
                     >
                       {tx("Voltar ao Login", "Back to Login", "Volver al Login")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      asChild
-                      className="w-full text-xs"
-                    >
-                      <Link to="/dashboard">
-                        {tx("Ir ao Painel", "Go to Dashboard", "Ir al Panel")}
-                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -377,44 +403,79 @@ function Login() {
                   <div className="space-y-1.5">
                     <Label htmlFor="req-identity" className="text-sm font-medium">
                       {tx(
-                        "Matrícula Funcional / E-mail Institucional",
-                        "Functional ID / Institutional Email",
-                        "Matrícula Funcional / Correo Institucional"
+                        "E-mail institucional",
+                        "Institutional email",
+                        "Correo institucional"
                       )}
                     </Label>
                     <Input
                       id="req-identity"
                       required
-                      type="text"
-                      placeholder={tx("ex: conselheiro@municipio.gov.br", "ex: counselor@city.gov.br", "ej: consejero@municipio.gov.br")}
+                      type="email"
+                      placeholder={tx("conselheiro@municipio.gov.br", "counselor@city.gov", "consejero@municipio.gov")}
                       value={identity}
                       onChange={(e) => setIdentity(e.target.value)}
+                      autoComplete="email"
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="req-registration" className="text-sm font-medium">
+                      {tx("Matrícula funcional", "Employee registration", "Matrícula funcional")}
+                    </Label>
+                    <Input
+                      id="req-registration"
+                      required
+                      maxLength={60}
+                      value={employeeRegistration}
+                      onChange={(e) => setEmployeeRegistration(e.target.value)}
+                      autoComplete="off"
                       className="h-10"
                     />
                   </div>
 
                   <div className="space-y-1.5">
                     <Label htmlFor="req-region" className="text-sm font-medium">
-                      {tx(
-                        "Conselho Tutelar / Município",
-                        "Child Protection Council / Municipality",
-                        "Consejo Tutelar / Municipio"
-                      )}
+                      {tx("Regional do Conselho Tutelar de Cuiabá", "Cuiabá Child Protection Council region", "Regional del Consejo Tutelar de Cuiabá")}
                     </Label>
-                    <Input
-                      id="req-region"
-                      required
-                      placeholder={tx("ex: Conselho Tutelar Zona Sul - SP", "ex: South Zone Council - SP", "ej: Consejo Tutelar Zona Sur - SP")}
-                      value={councilRegion}
-                      onChange={(e) => setCouncilRegion(e.target.value)}
-                      className="h-10"
-                    />
+                    <Select value={councilRegion} onValueChange={setCouncilRegion}>
+                      <SelectTrigger id="req-region">
+                        <SelectValue placeholder={tx("Selecione a regional", "Select region", "Seleccione regional")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {councilRegions.map((region) => (
+                          <SelectItem key={region.id} value={region.id}>{region.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <Button type="submit" size="lg" className="mt-2 h-11 w-full gap-2 font-medium">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="req-password">{tx("Criar senha", "Create password", "Crear contraseña")}</Label>
+                    <Input
+                      id="req-password"
+                      required
+                      type="password"
+                      minLength={10}
+                      autoComplete="new-password"
+                      value={registerPassword}
+                      onChange={(e) => setRegisterPassword(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {tx("Mínimo de 10 caracteres. O acesso aos casos permanece bloqueado até aprovação.", "At least 10 characters. Case access remains blocked until approval.", "Mínimo 10 caracteres. El acceso a casos permanece bloqueado hasta la aprobación.")}
+                    </p>
+                  </div>
+
+                  <Button type="submit" disabled={busy || !isLovableCloudConfigured} size="lg" className="mt-2 h-11 w-full gap-2 font-medium">
                     <Send className="size-4" />
-                    <span>{tx("Solicitar Acesso", "Request Access", "Solicitar Acceso")}</span>
+                    <span>{tx("Criar conta e solicitar acesso", "Create account and request access", "Crear cuenta y solicitar acceso")}</span>
                   </Button>
+                  {!isLovableCloudConfigured && (
+                    <p className="text-xs text-muted-foreground">
+                      {tx("Cadastro em nuvem indisponível neste ambiente.", "Cloud registration is unavailable in this environment.", "El registro en la nube no está disponible en este entorno.")}
+                    </p>
+                  )}
                 </form>
               )}
             </div>
@@ -429,12 +490,13 @@ function Login() {
 
           {/* Featured Button: Acessar Modo Demonstração (Sem Senha) */}
           <Button
-            asChild
+            type="button"
             variant="outline"
             size="lg"
             className="h-auto min-h-12 w-full whitespace-normal border-primary/40 bg-accent py-3 text-accent-foreground shadow-sm transition-all hover:border-primary hover:bg-accent/80"
+            onClick={enterDemo}
           >
-            <Link to="/dashboard" className="flex items-center justify-center gap-2 text-center font-semibold">
+            <span className="flex items-center justify-center gap-2 text-center font-semibold">
               <Sparkles className="size-4 shrink-0 text-primary" />
               <span>
                 {tx(
@@ -443,7 +505,7 @@ function Login() {
                   "Acceder al Modo Demostración (Sin Contraseña)"
                 )}
               </span>
-            </Link>
+            </span>
           </Button>
 
           {/* Security / Privacy notice */}
@@ -481,9 +543,9 @@ function Login() {
             </DialogTitle>
             <DialogDescription className="leading-relaxed">
               {tx(
-                "Por ser uma demonstração pública GovTech sem validação de credenciais, o Farol Protege não armazena contas reais. Você pode explorar todas as funções instantaneamente pelo Modo Demonstração.",
-                "As a public GovTech demo without credential validation, Farol Protege does not store real accounts. You can explore all features instantly via Demo Mode.",
-                "Al ser una demostración pública GovTech sin validación de credenciales, Farol Protege no almacena cuentas reales. Puede explorar todas las funciones al instante a través del Modo Demostración."
+                "Use o e-mail institucional associado à conta para receber um link seguro de redefinição.",
+                "Use the institutional email associated with the account to receive a secure reset link.",
+                "Use el correo institucional asociado a la cuenta para recibir un enlace seguro de restablecimiento."
               )}
             </DialogDescription>
           </DialogHeader>
@@ -491,10 +553,8 @@ function Login() {
             <Button variant="outline" onClick={() => setRecovery(false)}>
               {tx("Fechar", "Close", "Cerrar")}
             </Button>
-            <Button asChild onClick={() => setRecovery(false)}>
-              <Link to="/dashboard">
-                {tx("Entrar no Modo Demonstração", "Enter Demo Mode", "Entrar en Modo Demostración")}
-              </Link>
+            <Button onClick={handlePasswordRecovery} disabled={!isLovableCloudConfigured || !identity.trim()}>
+              {tx("Enviar link de redefinição", "Send reset link", "Enviar enlace")}
             </Button>
           </DialogFooter>
         </DialogContent>

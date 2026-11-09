@@ -18,7 +18,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n, useTx } from "@/lib/i18n";
 import { landing } from "@/lib/landing-i18n";
-import { addPublicReport } from "@/lib/reports-store";
+import { addPublicReport, submitCloudPublicReport } from "@/lib/reports-store";
+import { isSupportNeed, type SupportNeed } from "@/lib/protection-types";
+import { councilRegions, isLovableCloudConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_public/report")({
   head: () => ({ meta: [{ title: "Denúncia — Farol Protege" }] }),
@@ -32,9 +34,11 @@ function Report() {
   const [type, setType] = useState("0");
   const [place, setPlace] = useState("");
   const [description, setDescription] = useState("");
+  const [supportNeed, setSupportNeed] = useState<SupportNeed>("unknown");
+  const [councilRegion, setCouncilRegion] = useState("");
   const [pin, setPin] = useState<string | null>(null);
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (description.trim().length < 5) {
       toast.error(
@@ -47,22 +51,39 @@ function Report() {
       return;
     }
 
-    const report = addPublicReport({
-      type: content.types[Number(type)] ?? "Outro",
-      place,
-      desc: description,
-    });
-    setPin(report.pin);
-    setPlace("");
-    setDescription("");
-    setType("0");
-    toast.success(
-      tx(
-        "Protocolo de demonstração criado neste navegador.",
-        "Demo protocol created in this browser.",
-        "Protocolo de demostración creado en este navegador.",
-      ),
-    );
+    if (isLovableCloudConfigured && !councilRegion) {
+      toast.error(tx("Selecione a regional para encaminhar a denúncia.", "Select a region to route the report.", "Seleccione la regional para enviar la denuncia."));
+      return;
+    }
+
+    try {
+      const report = isLovableCloudConfigured
+        ? await submitCloudPublicReport({
+            councilRegion,
+            type: content.types[Number(type)] ?? "Outro",
+            approximateArea: place,
+            description,
+            supportNeed,
+          })
+        : addPublicReport({
+            type: content.types[Number(type)] ?? "Outro",
+            place,
+            desc: description,
+            supportNeed,
+          });
+      setPin("protocol" in report ? report.protocol : report.pin);
+      setPlace("");
+      setDescription("");
+      setType("0");
+      setSupportNeed("unknown");
+      toast.success(
+        isLovableCloudConfigured
+          ? tx("Denúncia recebida na fila de triagem da regional.", "Report received in the regional triage queue.", "Denuncia recibida en la cola de triage regional.")
+          : tx("Protocolo de demonstração criado neste navegador.", "Demo protocol created in this browser.", "Protocolo de demostración creado en este navegador."),
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tx("Não foi possível enviar a denúncia.", "Could not submit report.", "No se pudo enviar la denuncia."));
+    }
   };
 
   return (
@@ -77,15 +98,23 @@ function Report() {
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle>
-                {tx("Formulário demonstrativo", "Demonstration form", "Formulario demostrativo")}
+                {isLovableCloudConfigured
+                  ? tx("Denúncia cidadã", "Citizen report", "Denuncia ciudadana")
+                  : tx("Formulário demonstrativo", "Demonstration form", "Formulario demostrativo")}
               </CardTitle>
               <Badge variant="outline">Sem envio ao Conselho</Badge>
             </div>
             <CardDescription>
               {tx(
-                "Este protótipo salva o exemplo apenas neste navegador. Não use para registrar uma denúncia real.",
-                "This prototype stores the example only in this browser. Do not use it to submit a real report.",
-                "Este prototipo guarda el ejemplo solo en este navegador. No lo use para una denuncia real.",
+                isLovableCloudConfigured
+                  ? "A denúncia será encaminhada à fila restrita da regional selecionada. Não informe nomes, documentos ou dados clínicos desnecessários."
+                  : "Este protótipo salva o exemplo apenas neste navegador. Não use para registrar uma denúncia real.",
+                isLovableCloudConfigured
+                  ? "The report will be sent to the restricted queue for the selected region. Do not include names, IDs, or unnecessary clinical data."
+                  : "This prototype stores the example only in this browser. Do not use it to submit a real report.",
+                isLovableCloudConfigured
+                  ? "La denuncia se enviará a la cola restringida de la regional seleccionada. No incluya nombres, documentos ni datos clínicos innecesarios."
+                  : "Este prototipo guarda el ejemplo solo en este navegador. No lo use para una denuncia real.",
               )}
             </CardDescription>
           </CardHeader>
@@ -118,6 +147,59 @@ function Report() {
                     "Indique solo una zona aproximada",
                   )}
                 />
+              </div>
+              {isLovableCloudConfigured && (
+                <div className="space-y-2">
+                  <Label htmlFor="report-region">{tx("Regional do Conselho Tutelar responsável", "Responsible Child Protection Council region", "Regional responsable del Consejo Tutelar")}</Label>
+                  <Select value={councilRegion} onValueChange={setCouncilRegion}>
+                    <SelectTrigger id="report-region">
+                      <SelectValue placeholder={tx("Selecione a regional de Cuiabá", "Select a Cuiabá region", "Seleccione una regional de Cuiabá")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {councilRegions.map((region) => (
+                        <SelectItem key={region.id} value={region.id}>{region.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="report-support-need">
+                  {tx(
+                    "Criança possui laudo/suspeita de TEA ou deficiência física, intelectual ou sensorial?",
+                    "Does the child have a diagnosis/suspected autism or physical, intellectual, or sensory disability?",
+                    "¿El niño tiene diagnóstico/sospecha de autismo o discapacidad física, intelectual o sensorial?",
+                  )}
+                </Label>
+                <Select
+                  value={supportNeed}
+                  onValueChange={(value) => {
+                    if (isSupportNeed(value)) setSupportNeed(value);
+                  }}
+                >
+                  <SelectTrigger id="report-support-need">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="confirmed">
+                      {tx("Sim, há laudo", "Yes, diagnosed", "Sí, con diagnóstico")}
+                    </SelectItem>
+                    <SelectItem value="suspected">
+                      {tx("Há suspeita, sem laudo", "Suspected, no diagnosis", "Hay sospecha, sin diagnóstico")}
+                    </SelectItem>
+                    <SelectItem value="none">{tx("Não", "No", "No")}</SelectItem>
+                    <SelectItem value="unknown">
+                      {tx("Não informado", "Not informed", "No informado")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {tx(
+                    "Não inclua detalhes do laudo neste formulário demonstrativo.",
+                    "Do not include diagnosis details in this demonstration form.",
+                    "No incluya detalles del diagnóstico en este formulario demostrativo.",
+                  )}
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="report-description">{content.fDesc}</Label>
@@ -179,9 +261,9 @@ function Report() {
             <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
               <LockKeyhole className="size-4" />
               {tx(
-                "Não informe nomes completos ou dados sensíveis neste protótipo.",
-                "Do not enter full names or sensitive information in this prototype.",
-                "No incluya nombres completos ni datos sensibles en este prototipo.",
+                "O indicador de TEA/deficiência fica salvo apenas neste navegador. Não inclua nomes nem detalhes clínicos no relato.",
+                "The autism/disability indicator is stored only in this browser. Do not include names or clinical details in the report.",
+                "El indicador de autismo/discapacidad se guarda solo en este navegador. No incluya nombres ni detalles clínicos en el relato.",
               )}
             </p>
           </CardContent>

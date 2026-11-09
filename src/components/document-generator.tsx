@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useState } from "react";
 import {
   FileSignature,
   Gavel,
@@ -9,7 +8,6 @@ import {
   Scale,
   ArrowLeft,
   ShieldCheck,
-  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,34 +19,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { addTimeline, type Case } from "@/lib/cases-store";
+import {
+  addOfficialCommunication,
+  createOfficialCommunicationDraft,
+  type Case,
+  type OfficialCommunicationDraft,
+} from "@/lib/cases-store";
 import { useTx } from "@/lib/i18n";
 import { usePrivacy } from "@/lib/privacy-store";
-
-function CoatOfArms() {
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      className="mx-auto size-14 drop-shadow-xs"
-      aria-hidden="true"
-    >
-      <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="2.5" />
-      <polygon
-        points="50,14 61,38 86,38 66,54 74,78 50,62 26,78 34,54 14,38 39,38"
-        fill="currentColor"
-        opacity="0.9"
-      />
-      <circle cx="50" cy="48" r="14" fill="var(--background, #fff)" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M38 52 Q50 40 62 52"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <circle cx="50" cy="46" r="2.5" fill="currentColor" />
-    </svg>
-  );
-}
+import { DemoVerificationQr } from "@/components/demo-verification-qr";
+import { toast } from "sonner";
+import { appendAuditEvents } from "@/lib/audit-store";
 
 const templates = [
   {
@@ -75,6 +56,14 @@ const templates = [
     organ: "Vara da Infância e da Juventude da Comarca",
     ask: "a criteriosa apreciação judicial e a aplicação das medidas de proteção integral cabíveis, com fundamento nos arts. 98 e 101 do ECA",
   },
+  {
+    key: "inclusive-education",
+    name: "Notificação Recomendatória à Secretaria Municipal de Educação / Escola Privada - Designação Imediata de Profissional de Apoio Escolar (AEE)",
+    icon: School,
+    titleVocativo: "Senhor(a) Secretário(a) Municipal de Educação / Senhor(a) Diretor(a)",
+    organ: "Secretaria Municipal de Educação ou direção da unidade escolar privada",
+    ask: "que sejam adotadas, com urgência, as providências para assegurar a matrícula e a permanência do(a) estudante, a oferta do Atendimento Educacional Especializado (AEE) e, quando comprovada a necessidade, a disponibilização de profissional de apoio escolar, sem cobrança adicional à família",
+  },
 ] as const;
 
 export function DocumentGenerator({ c }: { c: Case }) {
@@ -82,6 +71,9 @@ export function DocumentGenerator({ c }: { c: Case }) {
   const { maskName, maskFamily, maskAddress, lgpdMode } = usePrivacy();
   const [open, setOpen] = useState(false);
   const [tpl, setTpl] = useState<(typeof templates)[number] | null>(null);
+  const [verificationDraft, setVerificationDraft] = useState<OfficialCommunicationDraft | null>(null);
+  const [qrReady, setQrReady] = useState(false);
+  const onQrReady = useCallback(() => setQrReady(true), []);
 
   const today = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -93,33 +85,53 @@ export function DocumentGenerator({ c }: { c: Case }) {
   const childDisplay = maskName(c.child);
   const familyDisplay = maskFamily(c.family);
 
-  const finish = (how: "print" | "email") => {
-    addTimeline(
-      c.id,
-      `Ofício Nº ${num} gerado`,
-      `Destinatário: ${tpl!.name} (${how === "print" ? "impresso para protocolo oficial" : "encaminhado digitalmente por e-mail"}).`
-    );
-
-    if (how === "print") {
-      window.print();
-      toast.success(
-        tx(
-          "Ofício timbrado enviado para impressão / PDF",
-          "Official letter sent to printer / PDF export",
-          "Oficio enviado para impresión / exportación PDF"
-        )
-      );
-    } else {
-      toast.success(
-        tx(
-          "Ofício protocolado e enviado por e-mail institucional",
-          "Official letter dispatched via institutional email",
-          "Oficio despachado por correo electrónico institucional"
-        )
-      );
+  const finish = async () => {
+    if (!verificationDraft) {
+      toast.error(tx("Não foi possível registrar o documento demonstrativo.", "Could not register the demo document.", "No se pudo registrar el documento demostrativo."));
+      return;
     }
+    try {
+      await appendAuditEvents([
+        {
+          caseId: c.id,
+          action: "letter_generated",
+          summary: `Minuta de ofício para ${tpl!.name} gerada para revisão e impressão.`,
+          actorProfile: "counselor",
+        },
+      ]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível registrar a geração da minuta.");
+      return;
+    }
+    if (!await addOfficialCommunication(c.id, verificationDraft)) {
+      toast.error(tx("Caso não encontrado; minuta não gerada.", "Case not found; draft not generated.", "Caso no encontrado; borrador no generado."));
+      return;
+    }
+
+    window.print();
+    toast.success(
+      tx(
+        "Minuta impressa para revisão. Não foi enviada nem protocolada oficialmente.",
+        "Draft printed for review. It was not sent or officially filed.",
+        "Borrador impreso para revisión. No se envió ni se registró oficialmente.",
+      ),
+    );
     setOpen(false);
     setTpl(null);
+    setVerificationDraft(null);
+    setQrReady(false);
+  };
+
+  const selectTemplate = (selected: (typeof templates)[number]) => {
+    try {
+      setVerificationDraft(
+        createOfficialCommunicationDraft("Ofício gerado para revisão", "counselor"),
+      );
+      setQrReady(false);
+      setTpl(selected);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : tx("Falha ao gerar chave demonstrativa.", "Could not create demo key.", "No se pudo crear la clave de demostración."));
+    }
   };
 
   return (
@@ -127,13 +139,16 @@ export function DocumentGenerator({ c }: { c: Case }) {
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
-        if (!o) setTpl(null);
+        if (!o) {
+          setTpl(null);
+          setVerificationDraft(null);
+        }
       }}
     >
       <DialogTrigger asChild>
         <Button size="lg" className="gap-2 font-medium">
           <FileSignature className="size-4" />
-          <span>{tx("Gerar Ofício Timbrado", "Generate Official Letter", "Generar Oficio")}</span>
+          <span>{tx("Gerar minuta de ofício", "Generate letter draft", "Generar borrador de oficio")}</span>
         </Button>
       </DialogTrigger>
 
@@ -142,7 +157,7 @@ export function DocumentGenerator({ c }: { c: Case }) {
           <div className="flex items-center justify-between gap-2">
             <DialogTitle>
               {tpl
-                ? tx("Pré-visualização do Ofício Timbrado A4", "Official Letter A4 Preview", "Vista Previa del Oficio A4")
+                ? tx("Pré-visualização da minuta · sem validade oficial", "Draft preview · not an official document", "Vista previa del borrador · sin validez oficial")
                 : tx("Escolha o Modelo do Ofício", "Choose Document Template", "Elige el Modelo del Oficio")}
             </DialogTitle>
             {lgpdMode && (
@@ -162,12 +177,12 @@ export function DocumentGenerator({ c }: { c: Case }) {
         </DialogHeader>
 
         {!tpl ? (
-          <div className="grid gap-3.5 py-4 sm:grid-cols-3">
+          <div className="grid gap-3.5 py-4 sm:grid-cols-2 xl:grid-cols-4">
             {templates.map((t) => (
               <button
                 key={t.key}
                 type="button"
-                onClick={() => setTpl(t)}
+                onClick={() => selectTemplate(t)}
                 className="flex flex-col justify-between rounded-xl border bg-card p-5 text-left transition hover:border-primary hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div>
@@ -196,14 +211,11 @@ export function DocumentGenerator({ c }: { c: Case }) {
               >
                 {/* Cabeçalho Timbrado Oficial com Brasão */}
                 <header className="border-b-2 border-black pb-5 text-center">
-                  <div className="text-black mb-2">
-                    <CoatOfArms />
-                  </div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-800">
-                    República Federativa do Brasil
+                    MODELO DEMONSTRATIVO · SEM VALIDADE OFICIAL
                   </p>
                   <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-neutral-700">
-                    Estado de São Paulo · Município Sede
+                    Estado de Mato Grosso · Município de Cuiabá
                   </p>
                   <h2 className="mt-1 text-base font-bold uppercase tracking-wide text-neutral-950">
                     Conselho Tutelar de Defesa dos Direitos da Criança e do Adolescente
@@ -216,10 +228,10 @@ export function DocumentGenerator({ c }: { c: Case }) {
                 {/* Numeração Sequencial e Data Oficial */}
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-b border-neutral-300 pb-3 text-xs">
                   <span className="font-bold tracking-wide">
-                    OFÍCIO Nº {num} - CT/FAROL
+                    MINUTA Nº {verificationDraft?.protocol ?? num}
                   </span>
                   <span className="text-neutral-700">
-                    São Paulo/SP, {today}
+                    Cuiabá/MT, {today}
                   </span>
                 </div>
 
@@ -231,7 +243,9 @@ export function DocumentGenerator({ c }: { c: Case }) {
 
                 {/* Assunto */}
                 <div className="mt-4 font-semibold text-xs border-l-2 border-black pl-3 py-1 bg-neutral-50 text-neutral-900">
-                  Assunto: Comunicação de Violação de Direitos e Requisição de Providências (Procedimento nº {c.id})
+                  Assunto: {tpl.key === "inclusive-education"
+                    ? "Notificação recomendatória para garantia de educação inclusiva e apoio escolar"
+                    : `Comunicação de Violação de Direitos e Requisição de Providências (Procedimento nº ${c.id})`}
                 </div>
 
                 {/* Corpo do Ofício */}
@@ -247,6 +261,32 @@ export function DocumentGenerator({ c }: { c: Case }) {
                   <p className="indent-8 text-neutral-800 italic bg-neutral-50 p-3 rounded border border-neutral-200">
                     &ldquo;{c.description}&rdquo;
                   </p>
+
+                  {tpl.key === "inclusive-education" && (
+                    <>
+                      <p className="indent-8">
+                        Para fins de triagem, consta a informação de que a criança/adolescente possui{" "}
+                        <strong>
+                          {c.supportNeed === "confirmed"
+                            ? "laudo informado"
+                            : c.supportNeed === "suspected"
+                              ? "suspeita informada, sem laudo"
+                              : c.supportNeed === "none"
+                                ? "ausência de laudo ou suspeita informada"
+                                : "condição não informada"}
+                        </strong>
+                        . A informação deve ser considerada com respeito à dignidade, à privacidade e às necessidades individuais do(a) estudante.
+                      </p>
+
+                      <p className="indent-8">
+                        A recomendação fundamenta-se no art. 208, inciso III, da Constituição Federal; no art. 54, inciso III, do Estatuto da Criança e do Adolescente; no art. 28, incisos III e XVII e § 1º, da Lei nº 13.146/2015; e, quando aplicável à pessoa com TEA, no art. 3º, parágrafo único, da Lei nº 12.764/2012. A oferta de AEE e de profissional de apoio deve observar as necessidades educacionais específicas e a avaliação pertinente, sem substituir a atuação dos demais profissionais da educação.
+                      </p>
+
+                      <p className="indent-8">
+                        Registra-se que o art. 8º, inciso I, da Lei nº 7.853/1989, com redação dada pelo art. 98 da Lei nº 13.146/2015, tipifica como crime recusar, cobrar valores adicionais, suspender, procrastinar, cancelar ou fazer cessar inscrição em estabelecimento de ensino em razão da deficiência, com pena de reclusão de 2 a 5 anos e multa; se a vítima for menor de 18 anos, a pena é aumentada em um terço.
+                      </p>
+                    </>
+                  )}
 
                   <p className="indent-8">
                     Diante da gravidade da situação fática exposta e com o objetivo inegociável de fazer cessar a violação de direitos, garantindo a proteção integral prevista no art. 227 da Constituição Federal e art. 1º do ECA, <strong>SOLICITAMOS</strong> {tpl.ask}, devendo a manifestação formal ser encaminhada a este Colegiado no prazo de até <strong>10 (dez) dias úteis</strong>.
@@ -264,7 +304,7 @@ export function DocumentGenerator({ c }: { c: Case }) {
                       {c.counselor}
                     </div>
                     <p className="text-[11px] text-neutral-700">Conselheiro(a) Tutelar Relator(a)</p>
-                    <p className="text-[10px] text-neutral-500">Matrícula Funcional nº 10482/CT</p>
+                    <p className="text-[10px] text-neutral-500">Matrícula funcional: preencher</p>
                   </div>
 
                   <div>
@@ -272,17 +312,28 @@ export function DocumentGenerator({ c }: { c: Case }) {
                       Coordenação Colegiada
                     </div>
                     <p className="text-[11px] text-neutral-700">Conselho Tutelar Municipal</p>
-                    <p className="text-[10px] text-neutral-500">Portaria de Nomeação CMDCA 2026</p>
+                    <p className="text-[10px] text-neutral-500">Ato de designação: preencher</p>
                   </div>
                 </div>
 
-                {/* Rodapé Oficial com Carimbo Legal */}
+                {verificationDraft && (
+                  <div className="mt-8 flex items-center gap-4 border-t border-neutral-300 pt-4 text-[10px]">
+                    <DemoVerificationQr verificationKey={verificationDraft.verificationKey} onReady={onQrReady} />
+                    <div className="space-y-1">
+                      <p className="font-bold">CHAVE DE DEMONSTRAÇÃO: {verificationDraft.verificationKey}</p>
+                      <p>QR contém apenas identificador demonstrativo, sem dados do caso.</p>
+                      <p>Não valida autenticidade, assinatura, envio ou protocolo oficial.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Rodapé da minuta */}
                 <footer className="mt-10 border-t border-neutral-300 pt-3 text-center text-[10px] text-neutral-600 space-y-1">
                   <p className="uppercase tracking-wider font-semibold text-neutral-800">
-                    Documento Oficial Sigiloso · Artigos 17 e 143 do ECA (Lei 8.069/1990) e LGPD (Lei 13.709/2018)
+                    RASCUNHO PARA REVISÃO · SEM VALIDADE OFICIAL
                   </p>
                   <p>
-                    Sede Oficial do Conselho Tutelar · Rua da Cidadania, 100 — Centro · Atendimento: (11) 3000-0000 · Plantão 24h: 190
+                    Endereço e contatos institucionais devem ser conferidos antes da expedição.
                   </p>
                 </footer>
               </article>
@@ -296,14 +347,22 @@ export function DocumentGenerator({ c }: { c: Case }) {
               </Button>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="outline" onClick={() => finish("email")} className="gap-2">
+                <Button variant="outline" disabled className="gap-2">
                   <Mail className="size-4" />
-                  <span>{tx("Enviar por E-mail", "Send by Email", "Enviar por Correo")}</span>
+                  <span>
+                    {tx(
+                      "Envio por e-mail não configurado",
+                      "Email delivery is not configured",
+                      "Envío por correo no configurado",
+                    )}
+                  </span>
                 </Button>
 
-                <Button onClick={() => finish("print")} className="gap-2 bg-primary font-medium">
+                <Button onClick={() => void finish()} disabled={!qrReady} className="gap-2 bg-primary font-medium">
                   <Printer className="size-4" />
-                  <span>{tx("Imprimir / Exportar PDF", "Print / Export PDF", "Imprimir / Exportar PDF")}</span>
+                  <span>{qrReady
+                    ? tx("Imprimir minuta / Exportar PDF", "Print draft / Export PDF", "Imprimir borrador / Exportar PDF")
+                    : tx("Preparando QR demonstrativo…", "Preparing demo QR…", "Preparando QR de demostración…")}</span>
                 </Button>
               </div>
             </div>

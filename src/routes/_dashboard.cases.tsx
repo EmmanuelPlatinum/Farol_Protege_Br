@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Download, Lock, Search } from "lucide-react";
+import { CalendarClock, Download, Lock, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -13,8 +13,14 @@ import { RiskBadge } from "@/components/risk-badge";
 import { useI18n, useTx } from "@/lib/i18n";
 import { sortByRisk, useCases } from "@/lib/cases-store";
 import { usePrivacy } from "@/lib/privacy-store";
+import { getDateKey, isDueWithinDays } from "@/lib/protective-measures";
+import { appendAuditEvents } from "@/lib/audit-store";
+import { useGovtechProfile } from "@/lib/govtech-profile";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_dashboard/cases")({
+  validateSearch: (search: Record<string, unknown>): { measuresDue?: "week" | undefined } =>
+    search["measuresDue"] === "week" ? { measuresDue: "week" } : {},
   head: () => ({
     meta: [
       { title: "Casos — Farol Protege" },
@@ -34,7 +40,9 @@ function Cases() {
   const { t } = useI18n();
   const tx = useTx();
   const { maskFamily, maskName, lgpdMode } = usePrivacy();
+  const { profile } = useGovtechProfile();
   const navigate = useNavigate();
+  const measuresDue = Route.useSearch()["measuresDue"];
   const all = useCases();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
@@ -42,20 +50,45 @@ function Cases() {
   const [period, setPeriod] = useState("all");
 
   const rows = useMemo(() => {
-    const now = new Date("2026-10-27").getTime();
+    const now = Date.now();
+    const today = getDateKey(new Date());
     const days = period === "all" ? Infinity : Number(period);
     const term = q.toLowerCase();
     return sortByRisk(all.filter((c) =>
       (status === "all" || c.status === status) &&
       (risk === "all" || c.risk === risk) &&
+      (!measuresDue ||
+        (c.protectiveMeasures ?? []).some((measure) => isDueWithinDays(measure, 7, today))) &&
       (now - new Date(c.date).getTime()) / 864e5 <= days &&
       (!term || `${c.id} ${c.family} ${c.type} ${c.counselor}`.toLowerCase().includes(term)),
     ));
-  }, [all, q, status, risk, period]);
+  }, [all, q, status, risk, period, measuresDue]);
 
   return (
     <>
-      <PageHeader title={t.cases.title} subtitle={tx("Casos críticos ficam sempre no topo da lista.", "Critical cases always stay at the top.", "Los casos críticos siempre permanecen al inicio de la lista.")} action={<><Button variant="outline" className="gap-2" onClick={() => {
+      <PageHeader title={t.cases.title} subtitle={tx("Casos críticos ficam sempre no topo da lista.", "Critical cases always stay at the top.", "Los casos críticos siempre permanecen al inicio de la lista.")} action={<><Button variant="outline" className="gap-2" onClick={async () => {
+        try {
+          await appendAuditEvents(
+            rows.length
+              ? rows.map((c) => ({
+                  caseId: c.id,
+                  action: "csv_exported" as const,
+                  summary: `Caso incluído na exportação CSV (${rows.length} registro(s)); modo sigilo ${lgpdMode ? "ativo" : "desativado"}.`,
+                  actorProfile: profile,
+                }))
+              : [
+                  {
+                    caseId: null,
+                    action: "csv_exported" as const,
+                    summary: "Exportação CSV sem registros.",
+                    actorProfile: profile,
+                  },
+                ],
+          );
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : tx("Falha ao registrar exportação; arquivo não gerado.", "Could not record export; file not generated.", "No se pudo registrar la exportación; archivo no generado."));
+          return;
+        }
         const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
         const head = ["Nº", "Criança", "Família", "Idade", "Tipo de violação", "Risco", "Status", "Conselheiro", "Providências"];
         const lines = rows.map((c) => [c.id, maskName(c.child), maskFamily(c.family), c.age, c.type, c.risk, t.status[c.status], c.counselor, (c.timeline ?? []).map((e) => e.title).join(" | ")].map(esc).join(";"));
@@ -64,6 +97,26 @@ function Cases() {
         a.href = url; a.download = `relatorio_mensal_cmdca_${new Date().toISOString().slice(0, 7)}.csv`;
         document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
       }}><Download className="size-4" />{tx("Exportar Relatório Mensal", "Export Monthly Report", "Exportar Informe Mensual")}</Button><NewCaseDialog /></>} />
+      {measuresDue === "week" && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+          <p className="flex items-center gap-2 text-sm font-medium">
+            <CalendarClock className="size-4 text-amber-600" />
+            {tx(
+              "Casos com medidas protetivas vencendo nos próximos 7 dias",
+              "Cases with protective measures due in the next 7 days",
+              "Casos con medidas de protección que vencen en los próximos 7 días",
+            )}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate({ to: "/cases", search: { measuresDue: undefined } })}
+          >
+            <X className="mr-1.5 size-4" />
+            {tx("Limpar filtro", "Clear filter", "Quitar filtro")}
+          </Button>
+        </div>
+      )}
       <Card className="mb-4 grid gap-3 p-4 shadow-card sm:grid-cols-2 lg:grid-cols-[1fr_180px_180px_180px]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

@@ -1,5 +1,6 @@
-import { Link } from "@tanstack/react-router";
-import { Bell, Search, ShieldCheck, ShieldAlert, EyeOff } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Bell, Search, ShieldCheck, ShieldAlert, Scale, Gavel } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -19,11 +20,58 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n, useTx } from "@/lib/i18n";
 import { usePrivacy } from "@/lib/privacy-store";
+import { useGovtechProfile } from "@/lib/govtech-profile";
+import { appendAuditEvents, getActiveAuditCase } from "@/lib/audit-store";
+import { signOut } from "@/lib/auth-store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function AppHeader() {
   const { t } = useI18n();
   const tx = useTx();
+  const navigate = useNavigate();
   const { lgpdMode, setLgpdMode } = usePrivacy();
+  const { profile, setProfile } = useGovtechProfile();
+  const [confirmPrivacyOff, setConfirmPrivacyOff] = useState(false);
+
+  const confirmUnmaskedAccess = async () => {
+    try {
+      await appendAuditEvents([
+        {
+          caseId: getActiveAuditCase(),
+          action: "privacy_mode_disabled",
+          summary: "Confirmação de acesso a dados sensíveis; visualização sem máscara autorizada pelo usuário.",
+          actorProfile: profile,
+        },
+      ]);
+      setLgpdMode(false);
+      setConfirmPrivacyOff(false);
+      toast.info(
+        tx(
+          "Acesso sem máscara confirmado e registrado no histórico de auditoria.",
+          "Unmasked access confirmed and recorded in the audit history.",
+          "Acceso sin máscara confirmado y registrado en el historial de auditoría.",
+        ),
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível registrar; o Modo Sigilo permanece ativo.");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b bg-card/80 px-4 backdrop-blur md:px-6">
@@ -35,6 +83,42 @@ export function AppHeader() {
       </div>
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5">
+          <span className="hidden text-[10px] font-medium uppercase tracking-wide text-amber-700 xl:inline dark:text-amber-400">
+            {tx("Simulado", "Simulated", "Simulado")}
+          </span>
+          {profile === "prosecutor" ? (
+            <Scale className="hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />
+          ) : profile === "juvenile_court" ? (
+            <Gavel className="hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />
+          ) : null}
+          <Select
+            value={profile}
+            onValueChange={(value) => {
+              if (value === "counselor" || value === "prosecutor" || value === "juvenile_court") {
+                setProfile(value);
+              }
+            }}
+          >
+            <SelectTrigger
+              className="h-9 w-[142px] border-dashed text-xs sm:w-[190px]"
+              aria-label={tx("Perfil simulado", "Simulated profile", "Perfil simulado")}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="counselor">
+                {tx("Conselheiro Tutelar", "Child Protection Counselor", "Consejero Tutelar")}
+              </SelectItem>
+              <SelectItem value="prosecutor">
+                {tx("Promotoria da Infância (MP)", "Children's Prosecutor (MP)", "Fiscalía de Infancia (MP)")}
+              </SelectItem>
+              <SelectItem value="juvenile_court">
+                {tx("Juizado da Infância", "Juvenile Court", "Juzgado de Infancia")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         {/* Botão de Alternância / Toggle: Modo Sigilo LGPD / ECA */}
         <TooltipProvider>
           <Tooltip>
@@ -57,8 +141,8 @@ export function AppHeader() {
                 <Switch
                   checked={lgpdMode}
                   onCheckedChange={(checked) => {
-                    setLgpdMode(checked);
                     if (checked) {
+                      setLgpdMode(true);
                       toast.success(
                         tx(
                           "Modo Sigilo LGPD/ECA ativado: Nomes de crianças e adolescentes anonimizados.",
@@ -67,13 +151,7 @@ export function AppHeader() {
                         )
                       );
                     } else {
-                      toast.info(
-                        tx(
-                          "Modo Sigilo desativado: Nomes completos visíveis internamente.",
-                          "Privacy Mode deactivated: Full names visible internally.",
-                          "Modo Sigilo desactivado: Nombres completos visibles."
-                        )
-                      );
+                      setConfirmPrivacyOff(true);
                     }
                   }}
                   aria-label={tx("Alternar Modo Sigilo LGPD", "Toggle LGPD Privacy Mode", "Alternar Modo Sigilo")}
@@ -89,6 +167,36 @@ export function AppHeader() {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        <AlertDialog open={confirmPrivacyOff} onOpenChange={setConfirmPrivacyOff}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {tx("Confirmação de acesso a dados sensíveis", "Sensitive data access confirmation", "Confirmación de acceso a datos sensibles")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {tx(
+                  "Você está acessando dados sensíveis de menores protegidos pelo ECA. Esta ação será registrada no histórico de auditoria do Conselho.",
+                  "You are accessing sensitive data of minors protected by the ECA. This action will be recorded in the Council's audit history.",
+                  "Está accediendo a datos sensibles de menores protegidos por el ECA. Esta acción se registrará en el historial de auditoría del Consejo.",
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{tx("Cancelar", "Cancel", "Cancelar")}</AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    void confirmUnmaskedAccess();
+                  }}
+                >
+                  {tx("Confirmar Visualização Justificada", "Confirm Justified Access", "Confirmar Visualización Justificada")}
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <LanguageToggle />
         <ThemeToggle />
@@ -120,8 +228,17 @@ export function AppHeader() {
             <DropdownMenuItem>{t.profile}</DropdownMenuItem>
             <DropdownMenuItem>{t.nav.settings}</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/login">{t.logout}</Link>
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault();
+                void signOut()
+                  .then(() => navigate({ to: "/login", replace: true }))
+                  .catch((error: unknown) =>
+                    toast.error(error instanceof Error ? error.message : tx("Não foi possível encerrar a sessão.", "Could not sign out.", "No se pudo cerrar sesión.")),
+                  );
+              }}
+            >
+              {t.logout}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
