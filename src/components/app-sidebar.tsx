@@ -9,6 +9,7 @@ import {
   Radar,
   Building2,
   ClipboardList,
+  Map,
 } from "lucide-react";
 import { FarolProtegeLogo } from "@/components/farol-logo";
 import {
@@ -45,6 +46,11 @@ export function AppSidebar() {
       title: tx("Gestão de Operações", "Operations management", "Gestión de operaciones"),
       url: "/operations",
       icon: ClipboardList,
+    },
+    {
+      title: tx("Mapa Territorial", "Territorial map", "Mapa territorial"),
+      url: "/territory",
+      icon: Map,
     },
     { title: t.nav.shifts, url: "/shifts", icon: CalendarClock },
     { title: t.nav.reports, url: "/reports", icon: FileText },

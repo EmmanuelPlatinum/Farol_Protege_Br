@@ -21,6 +21,7 @@ import { Route as DashboardReportsRouteImport } from './routes/_dashboard.report
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard.settings'
 import { Route as DashboardSheltersRouteImport } from './routes/_dashboard.shelters'
 import { Route as DashboardShiftsRouteImport } from './routes/_dashboard.shifts'
+import { Route as DashboardTerritoryRouteImport } from './routes/_dashboard.territory'
 import { Route as PublicAboutRouteImport } from './routes/_public.about'
 import { Route as PublicPublicShiftsRouteImport } from './routes/_public.public-shifts'
 import { Route as PublicReportRouteImport } from './routes/_public.report'
@@ -86,6 +87,11 @@ const DashboardShiftsRoute = DashboardShiftsRouteImport.update({
   path: '/shifts',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardTerritoryRoute = DashboardTerritoryRouteImport.update({
+  id: '/territory',
+  path: '/territory',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const PublicAboutRoute = PublicAboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof DashboardSettingsRoute
   '/shelters': typeof DashboardSheltersRoute
   '/shifts': typeof DashboardShiftsRoute
+  '/territory': typeof DashboardTerritoryRoute
   '/about': typeof PublicAboutRoute
   '/public-shifts': typeof PublicPublicShiftsRoute
   '/report': typeof PublicReportRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/settings': typeof DashboardSettingsRoute
   '/shelters': typeof DashboardSheltersRoute
   '/shifts': typeof DashboardShiftsRoute
+  '/territory': typeof DashboardTerritoryRoute
   '/about': typeof PublicAboutRoute
   '/public-shifts': typeof PublicPublicShiftsRoute
   '/report': typeof PublicReportRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/_dashboard/shelters': typeof DashboardSheltersRoute
   '/_dashboard/shifts': typeof DashboardShiftsRoute
+  '/_dashboard/territory': typeof DashboardTerritoryRoute
   '/_public/about': typeof PublicAboutRoute
   '/_public/public-shifts': typeof PublicPublicShiftsRoute
   '/_public/report': typeof PublicReportRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shelters'
     | '/shifts'
+    | '/territory'
     | '/about'
     | '/public-shifts'
     | '/report'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/shelters'
     | '/shifts'
+    | '/territory'
     | '/about'
     | '/public-shifts'
     | '/report'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/_dashboard/settings'
     | '/_dashboard/shelters'
     | '/_dashboard/shifts'
+    | '/_dashboard/territory'
     | '/_public/about'
     | '/_public/public-shifts'
     | '/_public/report'
@@ -326,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardShiftsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/territory': {
+      id: '/_dashboard/territory'
+      path: '/territory'
+      fullPath: '/territory'
+      preLoaderRoute: typeof DashboardTerritoryRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/_public/about': {
       id: '/_public/about'
       path: '/about'
@@ -380,6 +399,7 @@ interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSheltersRoute: typeof DashboardSheltersRoute
   DashboardShiftsRoute: typeof DashboardShiftsRoute
+  DashboardTerritoryRoute: typeof DashboardTerritoryRoute
   DashboardCaseCaseIdRoute: typeof DashboardCaseCaseIdRoute
 }
 
@@ -392,6 +412,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSheltersRoute: DashboardSheltersRoute,
   DashboardShiftsRoute: DashboardShiftsRoute,
+  DashboardTerritoryRoute: DashboardTerritoryRoute,
   DashboardCaseCaseIdRoute: DashboardCaseCaseIdRoute,
 }
 
