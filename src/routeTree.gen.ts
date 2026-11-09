@@ -23,6 +23,7 @@ import { Route as DashboardSheltersRouteImport } from './routes/_dashboard.shelt
 import { Route as DashboardShiftsRouteImport } from './routes/_dashboard.shifts'
 import { Route as DashboardTerritoryRouteImport } from './routes/_dashboard.territory'
 import { Route as PublicAboutRouteImport } from './routes/_public.about'
+import { Route as PublicConselhosRouteImport } from './routes/_public.conselhos'
 import { Route as PublicPublicShiftsRouteImport } from './routes/_public.public-shifts'
 import { Route as PublicReportRouteImport } from './routes/_public.report'
 import { Route as PublicTrackingRouteImport } from './routes/_public.tracking'
@@ -97,6 +98,11 @@ const PublicAboutRoute = PublicAboutRouteImport.update({
   path: '/about',
   getParentRoute: () => PublicRoute,
 } as any)
+const PublicConselhosRoute = PublicConselhosRouteImport.update({
+  id: '/conselhos',
+  path: '/conselhos',
+  getParentRoute: () => PublicRoute,
+} as any)
 const PublicPublicShiftsRoute = PublicPublicShiftsRouteImport.update({
   id: '/public-shifts',
   path: '/public-shifts',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/shifts': typeof DashboardShiftsRoute
   '/territory': typeof DashboardTerritoryRoute
   '/about': typeof PublicAboutRoute
+  '/conselhos': typeof PublicConselhosRoute
   '/public-shifts': typeof PublicPublicShiftsRoute
   '/report': typeof PublicReportRoute
   '/tracking': typeof PublicTrackingRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/shifts': typeof DashboardShiftsRoute
   '/territory': typeof DashboardTerritoryRoute
   '/about': typeof PublicAboutRoute
+  '/conselhos': typeof PublicConselhosRoute
   '/public-shifts': typeof PublicPublicShiftsRoute
   '/report': typeof PublicReportRoute
   '/tracking': typeof PublicTrackingRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/_dashboard/shifts': typeof DashboardShiftsRoute
   '/_dashboard/territory': typeof DashboardTerritoryRoute
   '/_public/about': typeof PublicAboutRoute
+  '/_public/conselhos': typeof PublicConselhosRoute
   '/_public/public-shifts': typeof PublicPublicShiftsRoute
   '/_public/report': typeof PublicReportRoute
   '/_public/tracking': typeof PublicTrackingRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/territory'
     | '/about'
+    | '/conselhos'
     | '/public-shifts'
     | '/report'
     | '/tracking'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/shifts'
     | '/territory'
     | '/about'
+    | '/conselhos'
     | '/public-shifts'
     | '/report'
     | '/tracking'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_dashboard/shifts'
     | '/_dashboard/territory'
     | '/_public/about'
+    | '/_public/conselhos'
     | '/_public/public-shifts'
     | '/_public/report'
     | '/_public/tracking'
@@ -352,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicAboutRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_public/conselhos': {
+      id: '/_public/conselhos'
+      path: '/conselhos'
+      fullPath: '/conselhos'
+      preLoaderRoute: typeof PublicConselhosRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_public/public-shifts': {
       id: '/_public/public-shifts'
       path: '/public-shifts'
@@ -422,6 +441,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 interface PublicRouteChildren {
   PublicAboutRoute: typeof PublicAboutRoute
+  PublicConselhosRoute: typeof PublicConselhosRoute
   PublicPublicShiftsRoute: typeof PublicPublicShiftsRoute
   PublicReportRoute: typeof PublicReportRoute
   PublicTrackingRoute: typeof PublicTrackingRoute
@@ -430,6 +450,7 @@ interface PublicRouteChildren {
 
 const PublicRouteChildren: PublicRouteChildren = {
   PublicAboutRoute: PublicAboutRoute,
+  PublicConselhosRoute: PublicConselhosRoute,
   PublicPublicShiftsRoute: PublicPublicShiftsRoute,
   PublicReportRoute: PublicReportRoute,
   PublicTrackingRoute: PublicTrackingRoute,
