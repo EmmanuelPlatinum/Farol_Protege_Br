@@ -443,8 +443,13 @@ on public.cases for update to authenticated
 using (
   public.can_access_case(id)
   and (select public.current_profile_role()) in ('counselor', 'coordinator', 'admin')
+  and council_region = (select public.current_profile_region())
 )
-with check (public.can_access_case(id));
+with check (
+  public.is_approved_council_staff()
+  and (select public.current_profile_role()) in ('counselor', 'coordinator', 'admin')
+  and council_region = (select public.current_profile_region())
+);
 
 revoke all on public.cases from public, anon, authenticated;
 grant select, insert, update on public.cases to authenticated;
