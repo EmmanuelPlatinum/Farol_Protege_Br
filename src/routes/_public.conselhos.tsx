@@ -73,6 +73,7 @@ function ConselhosPage() {
         const near = [...councils].sort(
           (a, b) => distKm(coords.latitude, coords.longitude, a.lat, a.lng) - distKm(coords.latitude, coords.longitude, b.lat, b.lng),
         )[0];
+        if (!near) return;
         setSelected(near.id);
         toast.success(tx(`Mais próximo: ${near.name}`, `Nearest: ${near.name}`, `Más cercano: ${near.name}`));
       },
