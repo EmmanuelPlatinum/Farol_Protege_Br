@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Menu, ShieldCheck } from "lucide-react";
+import { Map, Menu, ShieldCheck } from "lucide-react";
 import { GovtechAccessibilityBar } from "@/components/govtech-accessibility-bar";
 import { FarolProtegeLogo } from "@/components/farol-logo";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ const links = [
   { to: "/", label: "Início", en: "Home", es: "Inicio" },
   { to: "/about", label: "Sobre", en: "About", es: "Acerca de" },
   { to: "/report", label: "Denunciar", en: "Report", es: "Denunciar" },
+  { to: "/conselhos", label: "Encontre seu Conselho", en: "Find your Council", es: "Encuentre su Consejo" },
   { to: "/tracking", label: "Acompanhar PIN", en: "Track PIN", es: "Consultar PIN" },
   { to: "/public-shifts", label: "Plantões", en: "Duty roster", es: "Guardias" },
   { to: "/transparency", label: "Transparência", en: "Transparency", es: "Transparencia" },
@@ -55,6 +56,7 @@ export function PublicSiteHeader() {
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
+                  {item.to === "/conselhos" && <Map className="mr-1 inline size-4" />}
                   {tx(item.label, item.en, item.es)}
                 </Link>
               );
@@ -136,6 +138,10 @@ export function PublicSiteLayout() {
             </Link>
             <Link to="/report" className="hover:text-foreground">
               {tx("Denunciar", "Report", "Denunciar")}
+            </Link>
+            <Link to="/conselhos" className="inline-flex items-center gap-1 hover:text-foreground">
+              <Map className="size-3" />
+              {tx("Encontre seu Conselho", "Find your Council", "Encuentre su Consejo")}
             </Link>
             <Link to="/tracking" className="hover:text-foreground">
               {tx("Acompanhar", "Track", "Consultar")}
