@@ -12,7 +12,7 @@ import { findPublicReportByPin, getCloudPublicReportStatus, type PublicReport } 
 import { isLovableCloudConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_public/tracking")({
-  head: () => ({ meta: [{ title: "Acompanhar protocolo — Farol Protege" }] }),
+  head: () => ({ meta: [{ title: "Acompanhar protocolo — Farol Infantil" }] }),
   component: Tracking,
 });
 

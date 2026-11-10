@@ -352,7 +352,7 @@ export function DocumentGenerator({ c }: { c: Case }) {
                   <span>
                     {tx(
                       "Envio por e-mail não configurado",
-                      "Email delivery is not configured",
+                      "O envio por e-mail não está configurado",
                       "Envío por correo no configurado",
                     )}
                   </span>

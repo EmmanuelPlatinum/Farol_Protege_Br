@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PublicPageIntro } from "@/components/public-site-layout";
 
 export const Route = createFileRoute("/_public/about")({
-  head: () => ({ meta: [{ title: "Sobre o Conselho Tutelar — Farol Protege" }] }),
+  head: () => ({ meta: [{ title: "Sobre o Conselho Tutelar — Farol Infantil" }] }),
   component: About,
 });
 

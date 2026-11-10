@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FarolProtegeLogo } from "@/components/farol-logo";
+import { FarolInfantilLogo } from "@/components/farol-infantil-logo";
 import { PublicSiteHeader } from "@/components/public-site-layout";
 import { useI18n, useTx } from "@/lib/i18n";
 import { isSupportNeed, type SupportNeed } from "@/lib/protection-types";
@@ -61,17 +61,17 @@ import c4 from "@/assets/c4.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Farol Protege — Portal Público de Defesa da Infância e Conselho Tutelar" },
+      { title: "Farol Infantil — Portal Público de Defesa da Infância e Conselho Tutelar" },
       {
         name: "description",
         content:
-          "Portal GovTech oficial de acolhimento de denúncias anônimas, consulta por PIN, transparência e escalas do Conselho Tutelar.",
+          "Portal demonstrativo de acolhimento de denúncias, informação, transparência e serviços dos Conselhos Tutelares.",
       },
-      { property: "og:title", content: "Farol Protege — Portal Público de Defesa da Infância e Conselho Tutelar" },
+      { property: "og:title", content: "Farol Infantil — Portal Público de Defesa da Infância e Conselho Tutelar" },
       {
         property: "og:description",
         content:
-          "Portal GovTech oficial de acolhimento de denúncias anônimas, consulta por PIN, transparência e escalas do Conselho Tutelar.",
+          "Portal demonstrativo de acolhimento de denúncias, informação, transparência e serviços dos Conselhos Tutelares.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -387,7 +387,7 @@ function ReportForm({
 }
 
 function Landing() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const tx = useTx();
   const L = landing[lang];
 
@@ -836,7 +836,7 @@ function Landing() {
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 pb-8 border-b border-border/60">
             <div>
-              <FarolProtegeLogo size="md" showSubtitle />
+              <FarolInfantilLogo size="md" showSubtitle />
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 {tx(
                   "Plataforma GovTech de defesa dos direitos fundamentais de crianças e adolescentes. Desenvolvido para modernizar a atuação colegiada.",
@@ -908,7 +908,7 @@ function Landing() {
           </div>
 
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} Farol Protege. {L.rights}</p>
+            <p>© {new Date().getFullYear()} {t.brand}. {L.rights}</p>
             <div className="flex items-center gap-4">
               <Link to="/login" className="text-primary hover:underline font-semibold">
                 {tx("Acesso Restrito para Conselheiros", "Counselor Portal Access", "Acceso Restringido")}

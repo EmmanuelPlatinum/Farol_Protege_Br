@@ -61,12 +61,12 @@ import c4 from "@/assets/c4.jpg";
 export const Route = createFileRoute("/_dashboard/shifts")({
   head: () => ({
     meta: [
-      { title: "Plantões — Farol Protege" },
+      { title: "Plantões — Farol Infantil" },
       {
         name: "description",
         content: "Escala semanal e sobreaviso demonstrativo do Conselho Tutelar.",
       },
-      { property: "og:title", content: "Plantões — Farol Protege" },
+      { property: "og:title", content: "Plantões — Farol Infantil" },
       {
         property: "og:description",
         content: "Escala semanal e sobreaviso demonstrativo do Conselho Tutelar.",

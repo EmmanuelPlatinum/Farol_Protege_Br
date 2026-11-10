@@ -10,9 +10,9 @@ import { resetDemoData } from "@/lib/cases-store";
 export const Route = createFileRoute("/_dashboard/settings")({
   head: () => ({
     meta: [
-      { title: "Configurações — Farol Protege" },
+      { title: "Configurações — Farol Infantil" },
       { name: "description", content: "Configure automações e notificações do conselho." },
-      { property: "og:title", content: "Configurações — Farol Protege" },
+      { property: "og:title", content: "Configurações — Farol Infantil" },
       { property: "og:description", content: "Configure automações e notificações do conselho." },
     ],
   }),

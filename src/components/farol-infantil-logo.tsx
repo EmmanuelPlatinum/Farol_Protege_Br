@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
-interface FarolProtegeLogoProps {
+interface FarolInfantilLogoProps {
   size?: "sm" | "md" | "lg" | "xl";
   showText?: boolean;
   showSubtitle?: boolean;
@@ -8,13 +9,15 @@ interface FarolProtegeLogoProps {
   inverted?: boolean;
 }
 
-export function FarolProtegeLogo({
+export function FarolInfantilLogo({
   size = "md",
   showText = true,
   showSubtitle = false,
   className,
   inverted = false,
-}: FarolProtegeLogoProps) {
+}: FarolInfantilLogoProps) {
+  const { t } = useI18n();
+
   const iconSizes = {
     sm: "size-7",
     md: "size-9",
@@ -35,7 +38,7 @@ export function FarolProtegeLogo({
       <div
         className={cn(
           "relative flex shrink-0 items-center justify-center rounded-xl overflow-hidden shadow-sm transition-transform hover:scale-105",
-          iconSizes[size]
+          iconSizes[size],
         )}
       >
         <svg
@@ -66,7 +69,13 @@ export function FarolProtegeLogo({
             </linearGradient>
 
             <filter id="shield-subtle-glow">
-              <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#0284C7" floodOpacity="0.3" />
+              <feDropShadow
+                dx="0"
+                dy="1"
+                stdDeviation="1.5"
+                floodColor="#0284C7"
+                floodOpacity="0.3"
+              />
             </filter>
           </defs>
 
@@ -87,31 +96,17 @@ export function FarolProtegeLogo({
           />
 
           {/* 2. Feixe de Luz Expansivo do Farol (Vetor Angular) */}
-          <path
-            d="M24 19L41 12V28L24 21Z"
-            fill="url(#beam-glow)"
-            opacity="0.85"
-          />
-          <path
-            d="M24 19L7 12V28L24 21Z"
-            fill="url(#beam-glow)"
-            opacity="0.5"
-          />
+          <path d="M24 19L41 12V28L24 21Z" fill="url(#beam-glow)" opacity="0.85" />
+          <path d="M24 19L7 12V28L24 21Z" fill="url(#beam-glow)" opacity="0.5" />
 
           {/* 3. Estrutura do Farol */}
           {/* Base rochosa / pedestal */}
           <ellipse cx="24" cy="36" rx="9" ry="2.5" fill="#047857" opacity="0.8" />
-          
+
           {/* Torre cônica do Farol */}
-          <polygon
-            points="21,35 27,35 26,21 22,21"
-            fill="url(#lighthouse-tower)"
-          />
+          <polygon points="21,35 27,35 26,21 22,21" fill="url(#lighthouse-tower)" />
           {/* Faixa vermelha institucional na torre */}
-          <polygon
-            points="21.6,29 26.4,29 26.1,26 21.9,26"
-            fill="#EF4444"
-          />
+          <polygon points="21.6,29 26.4,29 26.1,26 21.9,26" fill="#EF4444" />
 
           {/* Cúpula / Lanterna do Farol */}
           <rect x="21" y="19" width="6" height="2.5" rx="0.5" fill="#0F172A" />
@@ -127,22 +122,22 @@ export function FarolProtegeLogo({
       {/* Tipografia da Marca */}
       {showText && (
         <div className="flex flex-col leading-none">
-          <div className={cn(textSizes[size], "flex items-center gap-1.5")}>
+          <div className={cn(textSizes[size], "flex items-center gap-1.5 whitespace-nowrap")}>
             <span className={cn(inverted ? "text-white" : "text-foreground")}>
-              Farol
+              {t.brandPrefix}
             </span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
-              Protege
+            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
+              {t.brandSuffix}
             </span>
           </div>
           {showSubtitle && (
             <span
               className={cn(
                 "mt-0.5 text-[10px] font-medium tracking-normal",
-                inverted ? "text-slate-300" : "text-muted-foreground"
+                inverted ? "text-slate-300" : "text-muted-foreground",
               )}
             >
-              Portal Público de Proteção à Infância
+              {t.brandSubtitle}
             </span>
           )}
         </div>
@@ -150,4 +145,3 @@ export function FarolProtegeLogo({
     </div>
   );
 }
-

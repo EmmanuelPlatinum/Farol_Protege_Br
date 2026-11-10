@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -36,9 +36,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/_dashboard/case/$caseId")({
   head: ({ params }) => ({
     meta: [
-      { title: `Caso #${params.caseId} — Farol Protege` },
+      { title: `Caso #${params.caseId} — Farol Infantil` },
       { name: "description", content: "Histórico completo e ofícios de um caso sigiloso." },
-      { property: "og:title", content: `Caso #${params.caseId} — Farol Protege` },
+      { property: "og:title", content: `Caso #${params.caseId} — Farol Infantil` },
       { property: "og:description", content: "Histórico completo e ofícios de um caso sigiloso." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -89,6 +89,7 @@ function CaseViewAudit({ caseId }: { caseId: string }) {
 
 function CaseDetails() {
   const { caseId } = Route.useParams();
+  const path = useRouterState({ select: (state) => state.location.pathname });
   const { t } = useI18n();
   const tx = useTx();
   const { maskFamily, maskName, maskAddress, lgpdMode } = usePrivacy();
@@ -99,6 +100,7 @@ function CaseDetails() {
   >(null);
   const [loadingSensitiveData, setLoadingSensitiveData] = useState(false);
   const c = useCases().find((x) => x.id === caseId);
+  if (path.endsWith("/blockchain-timeline")) return <Outlet />;
   const visibleSensitiveData =
     auth.user &&
     sensitiveData?.caseId === caseId &&
@@ -196,6 +198,14 @@ function CaseDetails() {
           </div>
         </div>
         {!isReadOnly && <DocumentGenerator c={c} />}
+      </div>
+      <div className="mb-6">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/case/$caseId/blockchain-timeline" params={{ caseId: c.id }}>
+            <History className="mr-2 size-4" />
+            {tx("Trilha de integridade (demonstração)", "Integrity trail (demo)", "Cadena de integridad (demostración)")}
+          </Link>
+        </Button>
       </div>
       {isReadOnly && (
         <div role="status" className="mb-6 flex items-start gap-3 rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 text-sm">
@@ -339,7 +349,7 @@ function CaseDetails() {
               icon={School}
               title={tx(
                 "Busca Ativa Escolar · MEC",
-                "Active School Search · MEC",
+                "Busca ativa escolar · MEC",
                 "Búsqueda Escolar Activa · MEC",
               )}
               value={tx(
@@ -402,7 +412,7 @@ function CaseDetails() {
                 <p className="text-sm text-muted-foreground">
                   {tx(
                     "Sem consultas externas · dados de demonstração",
-                    "No external queries · demo data",
+                    "Sem consultas externas · dados demonstrativos",
                     "Sin consultas externas · datos de demostración",
                   )}
                 </p>

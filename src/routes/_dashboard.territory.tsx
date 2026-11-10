@@ -14,9 +14,9 @@ const TerritoryMap = lazy(() => import("@/components/territory-map"));
 export const Route = createFileRoute("/_dashboard/territory")({
   head: () => ({
     meta: [
-      { title: "Mapa Territorial de Cuiabá — Farol Protege" },
+      { title: "Mapa Territorial de Cuiabá — Farol Infantil" },
       { name: "description", content: "Conselhos Tutelares de Cuiabá, conselheiros e concentração de violações por bairro." },
-      { property: "og:title", content: "Mapa Territorial de Cuiabá — Farol Protege" },
+      { property: "og:title", content: "Mapa Territorial de Cuiabá — Farol Infantil" },
       { property: "og:description", content: "Conselhos Tutelares de Cuiabá, conselheiros e concentração de violações por bairro." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

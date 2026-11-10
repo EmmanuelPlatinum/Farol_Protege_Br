@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_dashboard")({
 function DashboardLayout() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const path = useRouterState({ select: (state) => state.location.pathname });
   const tx = useTx();
   const approved = auth.demoMode || Boolean(auth.user && auth.profile?.approved_at);
 
@@ -73,7 +74,9 @@ function DashboardLayout() {
         <div className="flex min-w-0 flex-1 flex-col">
           <AppHeader />
           <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8">
-            <Outlet />
+            <div key={path} className="route-enter">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

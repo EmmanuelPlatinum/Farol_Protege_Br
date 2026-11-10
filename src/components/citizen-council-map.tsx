@@ -1,19 +1,25 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
-import { councils } from "@/lib/cuiaba-councils";
+import { councilLocations } from "@/lib/council-locations";
 import { useTx } from "@/lib/i18n";
 
 function FlyTo({ id }: { id: string }) {
   const map = useMap();
   useEffect(() => {
-    const c = councils.find((x) => x.id === id);
+    const c = councilLocations.find((x) => x.id === id);
     if (c) map.flyTo([c.lat, c.lng], 12, { duration: 0.6 });
   }, [id, map]);
   return null;
 }
 
-export default function CitizenCouncilMap({ selected, onSelect }: { selected: string; onSelect: (id: string) => void }) {
+export default function CitizenCouncilMap({
+  selected,
+  onSelect,
+}: {
+  selected: string;
+  onSelect: (id: string) => void;
+}) {
   const tx = useTx();
 
   return (
@@ -27,7 +33,7 @@ export default function CitizenCouncilMap({ selected, onSelect }: { selected: st
       className="h-full w-full"
     >
       <MapContainer
-        center={[-15.58, -56.1]}
+        center={[-15.598317, -56.0948957]}
         zoom={11}
         className="h-full w-full rounded-lg"
         scrollWheelZoom={false}
@@ -37,7 +43,7 @@ export default function CitizenCouncilMap({ selected, onSelect }: { selected: st
           attribution="© OpenStreetMap contributors"
         />
         <FlyTo id={selected} />
-        {councils.map((c) => (
+        {councilLocations.map((c) => (
           <CircleMarker
             key={c.id}
             center={[c.lat, c.lng]}
@@ -51,15 +57,11 @@ export default function CitizenCouncilMap({ selected, onSelect }: { selected: st
             eventHandlers={{ click: () => onSelect(c.id) }}
           >
             <Popup>
-              <strong>
-                {c.name} · {c.region}
-              </strong>
+              <strong>{c.name}</strong>
               <br />
-              {tx(
-                "Ponto de referência aproximado — não é o endereço oficial da unidade.",
-                "Approximate reference point — not the unit's official address.",
-                "Punto de referencia aproximado — no es la dirección oficial de la unidad.",
-              )}
+              {c.address}
+              <br />
+              {c.locationNote}
             </Popup>
           </CircleMarker>
         ))}

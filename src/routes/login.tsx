@@ -29,8 +29,8 @@ import { Badge } from "@/components/ui/badge";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LighthouseScene } from "@/components/lighthouse-scene";
-import { FarolProtegeLogo } from "@/components/farol-logo";
-import { useTx } from "@/lib/i18n";
+import { FarolInfantilLogo } from "@/components/farol-infantil-logo";
+import { useI18n, useTx } from "@/lib/i18n";
 import {
   registerAccount,
   requestPasswordReset,
@@ -50,15 +50,15 @@ import {
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Acesso Conselheiro — Farol Protege" },
+      { title: "Acesso Conselheiro — Farol Infantil" },
       {
         name: "description",
-        content: "Acesso demonstrativo ao Farol Protege para conselheiros tutelares.",
+        content: "Acesso demonstrativo ao Farol Infantil para conselheiros tutelares.",
       },
-      { property: "og:title", content: "Acesso Conselheiro — Farol Protege" },
+      { property: "og:title", content: "Acesso Conselheiro — Farol Infantil" },
       {
         property: "og:description",
-        content: "Acesso dos conselheiros e demonstração do Farol Protege.",
+        content: "Acesso dos conselheiros e demonstração do Farol Infantil.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -69,6 +69,7 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const tx = useTx();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const auth = useAuth();
 
@@ -163,7 +164,7 @@ function Login() {
             to="/"
             className="inline-flex items-center gap-2 rounded-full bg-black/40 px-3.5 py-1.5 text-xs font-semibold tracking-wide text-white backdrop-blur-md transition-colors hover:bg-black/60"
           >
-            <FarolProtegeLogo size="sm" showSubtitle={false} inverted />
+            <FarolInfantilLogo size="sm" showSubtitle={false} inverted />
           </Link>
           <div className="hidden items-center gap-1.5 sm:flex">
             <span className="flex size-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -185,10 +186,15 @@ function Login() {
             {tx("Proteção que orienta", "Protection that guides", "Protección que orienta")}
           </Badge>
           <h2 className="max-w-md text-2xl font-bold leading-snug tracking-tight text-scene-copy lg:text-3xl">
+            {t.brand}:{" "}
             {tx(
-              "Farol Protege: Iluminando caminhos e protegendo a infância",
-              "Farol Protege: Lighting paths and protecting childhood",
-              "Farol Protege: Iluminando caminos y protegiendo la infancia"
+              "Iluminando caminhos e protegendo a infância",
+              "Lighting paths and protecting childhood",
+              "Iluminando caminos y protegiendo la infancia",
+              "Éclairer les chemins et protéger l’enfance",
+              "道を照らし、子どもを守る",
+              "照亮前路，守护童年",
+              "길을 밝히고 아동을 보호합니다",
             )}
           </h2>
           <p className="mt-3 max-w-sm text-xs leading-relaxed text-scene-copy/80">
@@ -206,7 +212,7 @@ function Login() {
         {/* Top bar with Branding, Language and Theme */}
         <header className="flex flex-wrap items-center justify-between gap-3">
           <Link to="/" className="flex items-center">
-            <FarolProtegeLogo size="md" showSubtitle />
+            <FarolInfantilLogo size="md" showSubtitle />
           </Link>
           <div className="flex items-center gap-1 sm:gap-2">
             <LanguageToggle />

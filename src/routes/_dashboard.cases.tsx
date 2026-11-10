@@ -25,9 +25,9 @@ export const Route = createFileRoute("/_dashboard/cases")({
     search["measuresDue"] === "week" ? { measuresDue: "week" } : {},
   head: () => ({
     meta: [
-      { title: "Casos — Farol Protege" },
+      { title: "Casos — Farol Infantil" },
       { name: "description", content: "Triagem inteligente e gestão de casos sigilosos do Conselho Tutelar." },
-      { property: "og:title", content: "Casos — Farol Protege" },
+      { property: "og:title", content: "Casos — Farol Infantil" },
       { property: "og:description", content: "Triagem inteligente e gestão de casos sigilosos do Conselho Tutelar." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { FolderOpen, Home, FileCheck, AlertTriangle, TrendingUp, FileText, Gavel, Send, ShieldCheck } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,9 +13,9 @@ import { isDueWithinDays } from "@/lib/protective-measures";
 export const Route = createFileRoute("/_dashboard/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Farol Protege" },
+      { title: "Painel — Farol Infantil" },
       { name: "description", content: "Casos ativos, visitas pendentes e prazos de relatórios do Conselho Tutelar." },
-      { property: "og:title", content: "Dashboard — Farol Protege" },
+      { property: "og:title", content: "Painel — Farol Infantil" },
       { property: "og:description", content: "Casos ativos, visitas pendentes e prazos de relatórios do Conselho Tutelar." },
     ],
   }),
@@ -27,6 +27,7 @@ const config = { reports: { label: "Denúncias", color: "var(--chart-1)" } } sat
 const icons = [Home, FileText, Send, Gavel, FileCheck];
 
 function Dashboard() {
+  const path = useRouterState({ select: (state) => state.location.pathname });
   const { t } = useI18n();
   const tx = useTx();
   const cases = useCases();
@@ -47,6 +48,7 @@ function Dashboard() {
     { label: t.kpi.visits, value: "8", delta: t.kpi.visitsD, icon: Home, urgent: true },
     { label: t.kpi.reports, value: "95%", delta: t.kpi.reportsD, icon: FileCheck },
   ];
+  if (path === "/dashboard/predictive-analytics") return <Outlet />;
   return (
     <>
       <PageHeader title={t.greeting} subtitle={t.greetingSub} />

@@ -77,9 +77,9 @@
 }
 
 :root {
-  --farol-blue: oklch(0.59 0.16 235); /* #0284C7 Azul Farol */
+  --farol-blue: oklch(0.43 0.11 250);
   --farol-blue-foreground: oklch(0.99 0 0);
-  --farol-green: oklch(0.59 0.16 160); /* #059669 Verde Institucional */
+  --farol-green: oklch(0.58 0.15 160);
   --farol-green-foreground: oklch(0.99 0 0);
   --scene-sky: oklch(0.18 0.035 250);
   --scene-horizon: oklch(0.35 0.045 220);
@@ -99,33 +99,33 @@
   --scene-copy: oklch(0.96 0.01 95);
   --scene-label: oklch(0.78 0.065 175);
   --radius: 0.75rem;
-  --background: oklch(0.99 0.003 245); /* #F8FAFC / #FFFFFF Fundo claro */
-  --foreground: oklch(0.21 0.03 260); /* #0F172A Texto escuro em slate */
-  --card: oklch(1 0 0); /* #FFFFFF */
-  --card-foreground: oklch(0.21 0.03 260);
+  --background: oklch(0.99 0.006 245);
+  --foreground: oklch(0.22 0.035 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.035 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.03 260);
-  --primary: oklch(0.59 0.16 160); /* #059669 Verde Institucional/Proteção */
+  --popover-foreground: oklch(0.22 0.035 250);
+  --primary: oklch(0.4 0.1 250);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.008 245);
-  --secondary-foreground: oklch(0.25 0.03 260);
-  --muted: oklch(0.965 0.005 245);
-  --muted-foreground: oklch(0.52 0.03 250); /* #64748B */
-  --accent: oklch(0.95 0.025 235);
-  --accent-foreground: oklch(0.35 0.14 235);
+  --secondary: oklch(0.96 0.012 245);
+  --secondary-foreground: oklch(0.28 0.04 250);
+  --muted: oklch(0.965 0.008 245);
+  --muted-foreground: oklch(0.49 0.03 250);
+  --accent: oklch(0.95 0.025 245);
+  --accent-foreground: oklch(0.35 0.1 250);
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
-  --success: oklch(0.59 0.16 160);
+  --success: oklch(0.55 0.14 160);
   --success-soft: oklch(0.95 0.05 160);
   --warning: oklch(0.7 0.15 70);
   --warning-soft: oklch(0.96 0.06 85);
   --danger-soft: oklch(0.95 0.04 25);
   --star: oklch(0.8 0.16 80);
-  --border: oklch(0.91 0.01 250); /* #E2E8F0 */
-  --input: oklch(0.91 0.01 250);
-  --ring: oklch(0.59 0.16 160);
-  --chart-1: oklch(0.59 0.16 160); /* Verde Institucional */
-  --chart-2: oklch(0.59 0.16 235); /* Azul Farol */
+  --border: oklch(0.91 0.015 250);
+  --input: oklch(0.91 0.015 250);
+  --ring: oklch(0.53 0.12 250);
+  --chart-1: oklch(0.58 0.15 160);
+  --chart-2: oklch(0.48 0.12 250);
   --chart-3: oklch(0.4 0.05 260);
   --chart-4: oklch(0.8 0.16 80);
   --chart-5: oklch(0.68 0.18 310);
@@ -141,9 +141,9 @@
 }
 
 .dark {
-  --farol-blue: oklch(0.65 0.16 235);
+  --farol-blue: oklch(0.72 0.11 235);
   --farol-blue-foreground: oklch(0.99 0 0);
-  --farol-green: oklch(0.68 0.17 155);
+  --farol-green: oklch(0.7 0.15 160);
   --farol-green-foreground: oklch(0.1 0.02 260);
   --background: oklch(0.18 0.025 260); /* #0F172A slate-900 */
   --foreground: oklch(0.97 0.005 240); /* #F8FAFC */
@@ -151,7 +151,7 @@
   --card-foreground: oklch(0.97 0.005 240);
   --popover: oklch(0.22 0.025 260);
   --popover-foreground: oklch(0.97 0.005 240);
-  --primary: oklch(0.68 0.17 155); /* #10B981 */
+  --primary: oklch(0.72 0.11 235);
   --primary-foreground: oklch(0.1 0.02 260);
   --secondary: oklch(0.26 0.03 260);
   --secondary-foreground: oklch(0.94 0.005 240);
@@ -168,7 +168,7 @@
   --danger-soft: oklch(0.3 0.07 25);
   --border: oklch(0.3 0.025 260);
   --input: oklch(0.3 0.025 260);
-  --ring: oklch(0.68 0.17 155);
+  --ring: oklch(0.72 0.11 235);
   --sidebar: oklch(0.14 0.025 260);
   --sidebar-border: oklch(0.24 0.025 260);
   --sidebar-accent: oklch(0.22 0.03 260);
@@ -203,6 +203,46 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+
+  button,
+  a,
+  [role="button"] {
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.route-enter {
+  animation: route-enter 280ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-enter {
+    animation: none;
+  }
+
+  [data-state="open"],
+  [data-state="closed"] {
+    animation-duration: 0.01ms !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

@@ -35,7 +35,7 @@ import { useTx } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_dashboard/shelters")({
   head: () => ({
-    meta: [{ title: "Vagas em Abrigos — Farol Protege" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Vagas em Abrigos — Farol Infantil" }, { name: "robots", content: "noindex" }],
   }),
   component: Shelters,
 });

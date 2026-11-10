@@ -12,9 +12,9 @@ import { useTx } from "@/lib/i18n";
 export const Route = createFileRoute("/_dashboard/alerts")({
   head: () => ({
     meta: [
-      { title: "Alertas Digitais — Farol Protege" },
+      { title: "Alertas Digitais — Farol Infantil" },
       { name: "description", content: "Alertas automáticos de riscos cibernéticos vindos de plataformas como Discord e Roblox." },
-      { property: "og:title", content: "Alertas Digitais — Farol Protege" },
+      { property: "og:title", content: "Alertas Digitais — Farol Infantil" },
       { property: "og:description", content: "Alertas automáticos de riscos cibernéticos vindos de plataformas como Discord e Roblox." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

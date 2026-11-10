@@ -7,7 +7,7 @@ import { useTx } from "@/lib/i18n";
 import { assignedCounselor, counselors, dateKey, weekDates } from "@/lib/shift-schedule";
 
 export const Route = createFileRoute("/_public/public-shifts")({
-  head: () => ({ meta: [{ title: "Plantões — Farol Protege" }] }),
+  head: () => ({ meta: [{ title: "Plantões — Farol Infantil" }] }),
   component: PublicShifts,
 });
 

@@ -24,11 +24,15 @@ import { Route as DashboardShiftsRouteImport } from './routes/_dashboard.shifts'
 import { Route as DashboardTerritoryRouteImport } from './routes/_dashboard.territory'
 import { Route as PublicAboutRouteImport } from './routes/_public.about'
 import { Route as PublicConselhosRouteImport } from './routes/_public.conselhos'
+import { Route as PublicEducaRouteImport } from './routes/_public.educa'
 import { Route as PublicPublicShiftsRouteImport } from './routes/_public.public-shifts'
 import { Route as PublicReportRouteImport } from './routes/_public.report'
 import { Route as PublicTrackingRouteImport } from './routes/_public.tracking'
 import { Route as PublicTransparencyRouteImport } from './routes/_public.transparency'
 import { Route as DashboardCaseCaseIdRouteImport } from './routes/_dashboard.case.$caseId'
+import { Route as DashboardDashboardPredictiveAnalyticsRouteImport } from './routes/_dashboard.dashboard.predictive-analytics'
+import { Route as PublicCitizenKidShieldRouteImport } from './routes/_public.citizen.kid-shield'
+import { Route as DashboardCaseCaseIdBlockchainTimelineRouteImport } from './routes/_dashboard.case.$caseId.blockchain-timeline'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -103,6 +107,11 @@ const PublicConselhosRoute = PublicConselhosRouteImport.update({
   path: '/conselhos',
   getParentRoute: () => PublicRoute,
 } as any)
+const PublicEducaRoute = PublicEducaRouteImport.update({
+  id: '/educa',
+  path: '/educa',
+  getParentRoute: () => PublicRoute,
+} as any)
 const PublicPublicShiftsRoute = PublicPublicShiftsRouteImport.update({
   id: '/public-shifts',
   path: '/public-shifts',
@@ -128,13 +137,30 @@ const DashboardCaseCaseIdRoute = DashboardCaseCaseIdRouteImport.update({
   path: '/case/$caseId',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardDashboardPredictiveAnalyticsRoute =
+  DashboardDashboardPredictiveAnalyticsRouteImport.update({
+    id: '/predictive-analytics',
+    path: '/predictive-analytics',
+    getParentRoute: () => DashboardDashboardRoute,
+  } as any)
+const PublicCitizenKidShieldRoute = PublicCitizenKidShieldRouteImport.update({
+  id: '/citizen/kid-shield',
+  path: '/citizen/kid-shield',
+  getParentRoute: () => PublicRoute,
+} as any)
+const DashboardCaseCaseIdBlockchainTimelineRoute =
+  DashboardCaseCaseIdBlockchainTimelineRouteImport.update({
+    id: '/blockchain-timeline',
+    path: '/blockchain-timeline',
+    getParentRoute: () => DashboardCaseCaseIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/alerts': typeof DashboardAlertsRoute
   '/cases': typeof DashboardCasesRoute
-  '/dashboard': typeof DashboardDashboardRoute
+  '/dashboard': typeof DashboardDashboardRouteWithChildren
   '/operations': typeof DashboardOperationsRoute
   '/reports': typeof DashboardReportsRoute
   '/settings': typeof DashboardSettingsRoute
@@ -143,18 +169,22 @@ export interface FileRoutesByFullPath {
   '/territory': typeof DashboardTerritoryRoute
   '/about': typeof PublicAboutRoute
   '/conselhos': typeof PublicConselhosRoute
+  '/educa': typeof PublicEducaRoute
   '/public-shifts': typeof PublicPublicShiftsRoute
   '/report': typeof PublicReportRoute
   '/tracking': typeof PublicTrackingRoute
   '/transparency': typeof PublicTransparencyRoute
-  '/case/$caseId': typeof DashboardCaseCaseIdRoute
+  '/case/$caseId': typeof DashboardCaseCaseIdRouteWithChildren
+  '/dashboard/predictive-analytics': typeof DashboardDashboardPredictiveAnalyticsRoute
+  '/citizen/kid-shield': typeof PublicCitizenKidShieldRoute
+  '/case/$caseId/blockchain-timeline': typeof DashboardCaseCaseIdBlockchainTimelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/alerts': typeof DashboardAlertsRoute
   '/cases': typeof DashboardCasesRoute
-  '/dashboard': typeof DashboardDashboardRoute
+  '/dashboard': typeof DashboardDashboardRouteWithChildren
   '/operations': typeof DashboardOperationsRoute
   '/reports': typeof DashboardReportsRoute
   '/settings': typeof DashboardSettingsRoute
@@ -163,11 +193,15 @@ export interface FileRoutesByTo {
   '/territory': typeof DashboardTerritoryRoute
   '/about': typeof PublicAboutRoute
   '/conselhos': typeof PublicConselhosRoute
+  '/educa': typeof PublicEducaRoute
   '/public-shifts': typeof PublicPublicShiftsRoute
   '/report': typeof PublicReportRoute
   '/tracking': typeof PublicTrackingRoute
   '/transparency': typeof PublicTransparencyRoute
-  '/case/$caseId': typeof DashboardCaseCaseIdRoute
+  '/case/$caseId': typeof DashboardCaseCaseIdRouteWithChildren
+  '/dashboard/predictive-analytics': typeof DashboardDashboardPredictiveAnalyticsRoute
+  '/citizen/kid-shield': typeof PublicCitizenKidShieldRoute
+  '/case/$caseId/blockchain-timeline': typeof DashboardCaseCaseIdBlockchainTimelineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -177,7 +211,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_dashboard/alerts': typeof DashboardAlertsRoute
   '/_dashboard/cases': typeof DashboardCasesRoute
-  '/_dashboard/dashboard': typeof DashboardDashboardRoute
+  '/_dashboard/dashboard': typeof DashboardDashboardRouteWithChildren
   '/_dashboard/operations': typeof DashboardOperationsRoute
   '/_dashboard/reports': typeof DashboardReportsRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
@@ -186,11 +220,15 @@ export interface FileRoutesById {
   '/_dashboard/territory': typeof DashboardTerritoryRoute
   '/_public/about': typeof PublicAboutRoute
   '/_public/conselhos': typeof PublicConselhosRoute
+  '/_public/educa': typeof PublicEducaRoute
   '/_public/public-shifts': typeof PublicPublicShiftsRoute
   '/_public/report': typeof PublicReportRoute
   '/_public/tracking': typeof PublicTrackingRoute
   '/_public/transparency': typeof PublicTransparencyRoute
-  '/_dashboard/case/$caseId': typeof DashboardCaseCaseIdRoute
+  '/_dashboard/case/$caseId': typeof DashboardCaseCaseIdRouteWithChildren
+  '/_dashboard/dashboard/predictive-analytics': typeof DashboardDashboardPredictiveAnalyticsRoute
+  '/_public/citizen/kid-shield': typeof PublicCitizenKidShieldRoute
+  '/_dashboard/case/$caseId/blockchain-timeline': typeof DashboardCaseCaseIdBlockchainTimelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -208,11 +246,15 @@ export interface FileRouteTypes {
     | '/territory'
     | '/about'
     | '/conselhos'
+    | '/educa'
     | '/public-shifts'
     | '/report'
     | '/tracking'
     | '/transparency'
     | '/case/$caseId'
+    | '/dashboard/predictive-analytics'
+    | '/citizen/kid-shield'
+    | '/case/$caseId/blockchain-timeline'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -228,11 +270,15 @@ export interface FileRouteTypes {
     | '/territory'
     | '/about'
     | '/conselhos'
+    | '/educa'
     | '/public-shifts'
     | '/report'
     | '/tracking'
     | '/transparency'
     | '/case/$caseId'
+    | '/dashboard/predictive-analytics'
+    | '/citizen/kid-shield'
+    | '/case/$caseId/blockchain-timeline'
   id:
     | '__root__'
     | '/'
@@ -250,11 +296,15 @@ export interface FileRouteTypes {
     | '/_dashboard/territory'
     | '/_public/about'
     | '/_public/conselhos'
+    | '/_public/educa'
     | '/_public/public-shifts'
     | '/_public/report'
     | '/_public/tracking'
     | '/_public/transparency'
     | '/_dashboard/case/$caseId'
+    | '/_dashboard/dashboard/predictive-analytics'
+    | '/_public/citizen/kid-shield'
+    | '/_dashboard/case/$caseId/blockchain-timeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -371,6 +421,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicConselhosRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_public/educa': {
+      id: '/_public/educa'
+      path: '/educa'
+      fullPath: '/educa'
+      preLoaderRoute: typeof PublicEducaRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_public/public-shifts': {
       id: '/_public/public-shifts'
       path: '/public-shifts'
@@ -406,33 +463,78 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCaseCaseIdRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/_dashboard/dashboard/predictive-analytics': {
+      id: '/_dashboard/dashboard/predictive-analytics'
+      path: '/predictive-analytics'
+      fullPath: '/dashboard/predictive-analytics'
+      preLoaderRoute: typeof DashboardDashboardPredictiveAnalyticsRouteImport
+      parentRoute: typeof DashboardDashboardRoute
+    }
+    '/_public/citizen/kid-shield': {
+      id: '/_public/citizen/kid-shield'
+      path: '/citizen/kid-shield'
+      fullPath: '/citizen/kid-shield'
+      preLoaderRoute: typeof PublicCitizenKidShieldRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_dashboard/case/$caseId/blockchain-timeline': {
+      id: '/_dashboard/case/$caseId/blockchain-timeline'
+      path: '/blockchain-timeline'
+      fullPath: '/case/$caseId/blockchain-timeline'
+      preLoaderRoute: typeof DashboardCaseCaseIdBlockchainTimelineRouteImport
+      parentRoute: typeof DashboardCaseCaseIdRoute
+    }
   }
 }
+
+interface DashboardDashboardRouteChildren {
+  DashboardDashboardPredictiveAnalyticsRoute: typeof DashboardDashboardPredictiveAnalyticsRoute
+}
+
+const DashboardDashboardRouteChildren: DashboardDashboardRouteChildren = {
+  DashboardDashboardPredictiveAnalyticsRoute:
+    DashboardDashboardPredictiveAnalyticsRoute,
+}
+
+const DashboardDashboardRouteWithChildren =
+  DashboardDashboardRoute._addFileChildren(DashboardDashboardRouteChildren)
+
+interface DashboardCaseCaseIdRouteChildren {
+  DashboardCaseCaseIdBlockchainTimelineRoute: typeof DashboardCaseCaseIdBlockchainTimelineRoute
+}
+
+const DashboardCaseCaseIdRouteChildren: DashboardCaseCaseIdRouteChildren = {
+  DashboardCaseCaseIdBlockchainTimelineRoute:
+    DashboardCaseCaseIdBlockchainTimelineRoute,
+}
+
+const DashboardCaseCaseIdRouteWithChildren =
+  DashboardCaseCaseIdRoute._addFileChildren(DashboardCaseCaseIdRouteChildren)
 
 interface DashboardRouteChildren {
   DashboardAlertsRoute: typeof DashboardAlertsRoute
   DashboardCasesRoute: typeof DashboardCasesRoute
-  DashboardDashboardRoute: typeof DashboardDashboardRoute
+  DashboardDashboardRoute: typeof DashboardDashboardRouteWithChildren
   DashboardOperationsRoute: typeof DashboardOperationsRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSheltersRoute: typeof DashboardSheltersRoute
   DashboardShiftsRoute: typeof DashboardShiftsRoute
   DashboardTerritoryRoute: typeof DashboardTerritoryRoute
-  DashboardCaseCaseIdRoute: typeof DashboardCaseCaseIdRoute
+  DashboardCaseCaseIdRoute: typeof DashboardCaseCaseIdRouteWithChildren
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAlertsRoute: DashboardAlertsRoute,
   DashboardCasesRoute: DashboardCasesRoute,
-  DashboardDashboardRoute: DashboardDashboardRoute,
+  DashboardDashboardRoute: DashboardDashboardRouteWithChildren,
   DashboardOperationsRoute: DashboardOperationsRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSheltersRoute: DashboardSheltersRoute,
   DashboardShiftsRoute: DashboardShiftsRoute,
   DashboardTerritoryRoute: DashboardTerritoryRoute,
-  DashboardCaseCaseIdRoute: DashboardCaseCaseIdRoute,
+  DashboardCaseCaseIdRoute: DashboardCaseCaseIdRouteWithChildren,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
@@ -442,19 +544,23 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 interface PublicRouteChildren {
   PublicAboutRoute: typeof PublicAboutRoute
   PublicConselhosRoute: typeof PublicConselhosRoute
+  PublicEducaRoute: typeof PublicEducaRoute
   PublicPublicShiftsRoute: typeof PublicPublicShiftsRoute
   PublicReportRoute: typeof PublicReportRoute
   PublicTrackingRoute: typeof PublicTrackingRoute
   PublicTransparencyRoute: typeof PublicTransparencyRoute
+  PublicCitizenKidShieldRoute: typeof PublicCitizenKidShieldRoute
 }
 
 const PublicRouteChildren: PublicRouteChildren = {
   PublicAboutRoute: PublicAboutRoute,
   PublicConselhosRoute: PublicConselhosRoute,
+  PublicEducaRoute: PublicEducaRoute,
   PublicPublicShiftsRoute: PublicPublicShiftsRoute,
   PublicReportRoute: PublicReportRoute,
   PublicTrackingRoute: PublicTrackingRoute,
   PublicTransparencyRoute: PublicTransparencyRoute,
+  PublicCitizenKidShieldRoute: PublicCitizenKidShieldRoute,
 }
 
 const PublicRouteWithChildren =

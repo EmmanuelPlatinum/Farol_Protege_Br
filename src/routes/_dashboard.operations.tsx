@@ -7,8 +7,10 @@ import {
   CloudOff,
   Clock3,
   Download,
+  Flame,
   FileText,
   MapPin,
+  Check,
   ShieldAlert,
   ShieldCheck,
   Siren,
@@ -36,7 +38,7 @@ import { useCases } from "@/lib/cases-store";
 export const Route = createFileRoute("/_dashboard/operations")({
   head: () => ({
     meta: [
-      { title: "Gestão de Operações — Farol Protege" },
+      { title: "Gestão de Operações — Farol Infantil" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -62,6 +64,20 @@ const visits = [
   },
 ];
 
+const emergencyChecklist = [
+  { id: "official-alert", label: "Validar o alerta e as instruções com fonte oficial" },
+  { id: "accessible-plan", label: "Planejar comunicação e transporte acessíveis com a rede local" },
+  { id: "shelter-confirmation", label: "Confirmar previamente locais de acolhimento e capacidade" },
+  {
+    id: "family-reunification",
+    label: "Definir protocolo seguro de reencontro familiar, sem listas públicas",
+  },
+  {
+    id: "privacy",
+    label: "Registrar somente dados estritamente necessários em sistema autorizado",
+  },
+] as const;
+
 function Operations() {
   const cases = useCases();
   const [visitStatuses, setVisitStatuses] = useState<Record<string, VisitStatus>>({});
@@ -69,6 +85,8 @@ function Operations() {
   const [escutaScheduled, setEscutaScheduled] = useState(false);
   const [handoff, setHandoff] = useState(false);
   const [handoffRead, setHandoffRead] = useState(false);
+  const [disasterScenario, setDisasterScenario] = useState<"flood" | "fire" | "heat">("flood");
+  const [preparedItems, setPreparedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const updateOnline = () => setOnline(navigator.onLine);
@@ -156,6 +174,7 @@ function Operations() {
           <TabsTrigger value="deadlines">Prazos e escuta</TabsTrigger>
           <TabsTrigger value="handoff">Passagem de plantão</TabsTrigger>
           <TabsTrigger value="integrations">Integrações</TabsTrigger>
+          <TabsTrigger value="resilience">Resiliência climática</TabsTrigger>
         </TabsList>
         <TabsContent value="visits" className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
@@ -413,6 +432,76 @@ function Operations() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+        <TabsContent value="resilience" className="space-y-4">
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Siren className="size-5 text-amber-600" />
+                Preparação para emergências climáticas
+              </CardTitle>
+              <CardDescription>
+                Roteiro demonstrativo de preparação. Não recebe alertas da Defesa Civil nem consulta
+                casos, abrigos ou endereços de famílias.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Tipo de cenário demonstrativo">
+                {([
+                  ["flood", "Alagamento / enchente"],
+                  ["fire", "Queimada / fumaça"],
+                  ["heat", "Onda de calor"],
+                ] as const).map(([value, label]) => (
+                  <Button
+                    key={value}
+                    type="button"
+                    variant={disasterScenario === value ? "default" : "outline"}
+                    aria-pressed={disasterScenario === value}
+                    onClick={() => setDisasterScenario(value)}
+                  >
+                    {value === "fire" ? <Flame className="mr-2 size-4" /> : <AlertTriangle className="mr-2 size-4" />}
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              <div className="rounded-lg border bg-background p-4">
+                <p className="font-medium">
+                  {disasterScenario === "flood"
+                    ? "Cenário: risco de alagamento em área comunitária"
+                    : disasterScenario === "fire"
+                      ? "Cenário: fumaça de queimada afetando a comunidade"
+                      : "Cenário: calor intenso e necessidade de hidratação"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Confirme alertas e rotas com a Defesa Civil e serviços oficiais. Não use dados
+                  fictícios deste protótipo para deslocar pessoas.
+                </p>
+              </div>
+              <div className="space-y-2">
+                {emergencyChecklist.map(({ id, label }) => (
+                  <label key={id} className="flex items-start gap-3 rounded-lg border p-3 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={preparedItems[id] ?? false}
+                      onChange={(event) =>
+                        setPreparedItems((previous) => ({
+                          ...previous,
+                          [id]: event.target.checked,
+                        }))
+                      }
+                      className="mt-1 accent-primary"
+                    />
+                    <span className="flex-1">{label}</span>
+                    {preparedItems[id] && <Check aria-hidden="true" className="size-4 text-primary" />}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
+                {Object.values(preparedItems).filter(Boolean).length} itens de preparação marcados
+                nesta sessão. Não foram sincronizados nem enviados.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </>

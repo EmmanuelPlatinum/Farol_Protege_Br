@@ -11,7 +11,7 @@ begin
     perform vault.create_secret(
       encode(extensions.gen_random_bytes(32), 'hex'),
       'farol_case_data_encryption_key',
-      'Encryption key for minor and family names in Farol Protege cases'
+      'Encryption key for minor and family names in Farol Infantil cases'
     );
   end if;
 end

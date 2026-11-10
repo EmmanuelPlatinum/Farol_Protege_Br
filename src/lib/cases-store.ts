@@ -51,7 +51,7 @@ export const sortByRisk = (list: Case[]) =>
 const seed = (): Case[] => [
   { id: "1042", family: "Silva", child: "J. S.", age: 9, type: "Violência doméstica", counselor: "Ana Costa", status: "urgent", risk: "critical", date: "2026-10-26", address: "Rua das Flores, 120 — Centro", description: "Denúncia anônima de agressões frequentes relatadas por vizinhos.",
     timeline: [
-      { date: "2026-10-24 09:12", title: "Denúncia recebida", note: "Denúncia anônima pelo portal Farol Protege (PIN #PROT-8921)." },
+      { date: "2026-10-24 09:12", title: "Denúncia recebida", note: "Denúncia anônima pelo portal Farol Infantil (PIN #PROT-8921)." },
       { date: "2026-10-24 14:30", title: "Triagem realizada", note: "Classificado como risco crítico pela conselheira Ana Costa." },
       { date: "2026-10-25 10:00", title: "Visita domiciliar", note: "Visita realizada; criança encaminhada para avaliação médica." },
       { date: "2026-10-26 16:45", title: "Encaminhamento ao CRAS", note: "Família inserida no acompanhamento psicossocial." },

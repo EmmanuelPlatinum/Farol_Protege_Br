@@ -10,8 +10,9 @@ import {
   Building2,
   ClipboardList,
   Map,
+  ChartNoAxesCombined,
 } from "lucide-react";
-import { FarolProtegeLogo } from "@/components/farol-logo";
+import { FarolInfantilLogo } from "@/components/farol-infantil-logo";
 import {
   Sidebar,
   SidebarContent,
@@ -31,6 +32,11 @@ export function AppSidebar() {
   const tx = useTx();
   const items = [
     { title: t.nav.dashboard, url: "/dashboard", icon: LayoutDashboard },
+    {
+      title: tx("Indicadores e cenários", "Indicators & scenarios", "Indicadores y escenarios"),
+      url: "/dashboard/predictive-analytics",
+      icon: ChartNoAxesCombined,
+    },
     { title: t.nav.cases, url: "/cases", icon: FolderLock },
     {
       title: tx("Alertas Digitais (API)", "Digital API Alerts", "Alertas Digitales (API)"),
@@ -60,7 +66,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <Link to="/" className="flex items-center gap-2 px-2 py-3">
-          <FarolProtegeLogo size="sm" showSubtitle={false} />
+          <FarolInfantilLogo size="sm" showSubtitle={false} />
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -73,7 +79,8 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={
-                      path === item.url || (item.url === "/cases" && path.startsWith("/case/"))
+                      path === item.url ||
+                      (item.url === "/cases" && path.startsWith("/case/"))
                     }
                     tooltip={item.title}
                   >

@@ -42,12 +42,12 @@ import { useGovtechProfile } from "@/lib/govtech-profile";
 export const Route = createFileRoute("/_dashboard/reports")({
   head: () => ({
     meta: [
-      { title: "Relatórios e Prestação de Contas — Farol Protege" },
+      { title: "Relatórios e Prestação de Contas — Farol Infantil" },
       {
         name: "description",
         content: "Relatórios estatísticos, prestação de contas CMDCA e acompanhamento de prazos do ECA.",
       },
-      { property: "og:title", content: "Relatórios e Prestação de Contas — Farol Protege" },
+      { property: "og:title", content: "Relatórios e Prestação de Contas — Farol Infantil" },
       {
         property: "og:description",
         content: "Relatórios estatísticos, prestação de contas CMDCA e acompanhamento de prazos do ECA.",

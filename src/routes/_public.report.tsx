@@ -23,7 +23,7 @@ import { isSupportNeed, type SupportNeed } from "@/lib/protection-types";
 import { councilRegions, isLovableCloudConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_public/report")({
-  head: () => ({ meta: [{ title: "Denúncia — Farol Protege" }] }),
+  head: () => ({ meta: [{ title: "Denúncia — Farol Infantil" }] }),
   component: Report,
 });
 

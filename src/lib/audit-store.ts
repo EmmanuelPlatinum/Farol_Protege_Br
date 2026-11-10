@@ -129,7 +129,7 @@ export async function appendAuditEvents(inputs: AuditEventInput[]) {
       actor: "Ana Costa · usuário demonstrativo",
       counselorRegistration: "Matrícula não configurada",
       simulatedIp: "192.0.2.1 · IP reservado para documentação (simulado)",
-      simulatedBrowser: "Cliente web do Farol Protege · ambiente demonstrativo",
+      simulatedBrowser: "Cliente web do Farol Infantil · ambiente demonstrativo",
     };
   });
   const next = [...events, ...records];

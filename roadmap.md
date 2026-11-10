@@ -1,4 +1,4 @@
-# Atualização Farol Protege
+# Atualização Farol Infantil
 - [x] Tela de acesso demonstrativo, animação do farol e ligação da página inicial.
 - [x] Escala semanal, destaque do sobreaviso e solicitação simulada de troca.
 - [x] Consulta pública e sigilosa de denúncias por PIN (#PROT-XXXX) na landing page com linha do tempo.

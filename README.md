@@ -1,40 +1,10 @@
-# Farol Protege
+# Farol Infantil
 
-Build a modern, responsive SaaS web application dashboard for a local business automation platform. The primary users are local business owners who need to manage their appointments, customer messages, and online reputation.
+# Farol Infantil
 
-Use React, Tailwind CSS, and shadcn/ui components. The design should be clean, professional, and minimalist, utilizing a color palette of slate grays, crisp white, and an electric blue for primary actions.
+Portal demonstrativo de informação e ferramentas para apoiar a proteção dos direitos de crianças e adolescentes e a atuação dos Conselhos Tutelares.
 
-Please generate the following core views:
-
-1. Layout & Navigation:
-
-A collapsible sidebar navigation containing: Dashboard, Appointments, Messages, Reviews, and Settings.
-
-A top header with a global search bar, a notification bell, and an avatar profile dropdown.
-
-2. Main Dashboard View:
-
-KPI Summary Cards: "Appointments Today", "New Reviews", "Unread Messages", and "Total Revenue".
-
-A simple, elegant line chart showing "Customer Engagement" over the last 7 days.
-
-A "Recent Activity" feed showing events like "João confirmed his appointment" or "New 5-star review from Maria".
-
-3. Appointments View (Agendamentos):
-
-A table or list view of upcoming client appointments.
-
-Columns for: Client Name, Service Type, Time, and a Status Badge (Confirmed, Pending, Cancelled).
-
-A prominent "New Appointment" primary button.
-
-4. Reviews View (Avaliações):
-
-A list of recent Google Business-style reviews with star ratings (1-5).
-
-A quick "Reply" button next to each review to simulate automated reputation management.
-
-Ensure the UI looks polished, uses proper spacing (padding/margins), and looks great on both desktop and mobile screens.
+O projeto inclui interfaces públicas de orientação e localização, além de painéis demonstrativos. Integrações institucionais, dados de contato e funcionalidades operacionais precisam ser validados com as autoridades responsáveis antes de qualquer uso real.
 
 This project was built with [Lovable](https://lovable.dev).
 

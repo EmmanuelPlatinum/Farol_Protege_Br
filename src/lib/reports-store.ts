@@ -373,7 +373,7 @@ export function addPublicReport(data: {
     status: "screening",
     statusLabel: "Em triagem e análise técnica",
     summary:
-      "Denúncia anônima recebida pelo portal Farol Protege e encaminhada à equipe de plantão para avaliação das medidas de proteção cabíveis.",
+      "Denúncia anônima recebida pelo portal Farol Infantil e encaminhada à equipe de plantão para avaliação das medidas de proteção cabíveis.",
     timeline: [
       {
         stepNumber: 1,

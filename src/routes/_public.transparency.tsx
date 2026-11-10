@@ -6,7 +6,7 @@ import { useTx } from "@/lib/i18n";
 import { usePublicReports } from "@/lib/reports-store";
 
 export const Route = createFileRoute("/_public/transparency")({
-  head: () => ({ meta: [{ title: "Transparência — Farol Protege" }] }),
+  head: () => ({ meta: [{ title: "Transparência — Farol Infantil" }] }),
   component: Transparency,
 });
 
@@ -65,7 +65,7 @@ function Transparency() {
               <p className="text-sm text-muted-foreground">
                 {tx(
                   "Nenhum PIN, endereço ou identificação de família é publicado nesta visão.",
-                  "No PIN, address or family identity is published in this view.",
+                  "Nenhum PIN, endereço ou identificação familiar é publicado nesta página.",
                   "No se publica ningún PIN, dirección ni identidad familiar en esta vista.",
                 )}
               </p>
