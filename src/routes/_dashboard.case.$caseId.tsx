@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Activity,
@@ -25,11 +25,13 @@ import { DocumentGenerator } from "@/components/document-generator";
 import { ProtectiveMeasuresChecklist } from "@/components/protective-measures-checklist";
 import { InterinstitutionalCommunications } from "@/components/interinstitutional-communications";
 import { LgpdAuditPanel } from "@/components/lgpd-audit-panel";
-import { updateCaseStatus, useCases } from "@/lib/cases-store";
+import { getCaseSensitiveData, updateCaseStatus, useCases } from "@/lib/cases-store";
 import { useI18n, useTx } from "@/lib/i18n";
 import { usePrivacy } from "@/lib/privacy-store";
 import { useGovtechProfile } from "@/lib/govtech-profile";
-import { appendAuditEvents, setActiveAuditCase } from "@/lib/audit-store";
+import { appendAuditEvents } from "@/lib/audit-store";
+import { useAuth } from "@/lib/auth-store";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_dashboard/case/$caseId")({
   head: ({ params }) => ({
@@ -48,38 +50,39 @@ export const Route = createFileRoute("/_dashboard/case/$caseId")({
 
 const variant = { open: "warning", urgent: "danger", closed: "success" } as const;
 
-function UnmaskedCaseViewAudit({ caseId, enabled }: { caseId: string; enabled: boolean }) {
+function CaseViewAudit({ caseId }: { caseId: string }) {
   const { profile } = useGovtechProfile();
+  const { user } = useAuth();
   const lastRecorded = useRef("");
 
   useEffect(() => {
-    setActiveAuditCase(caseId);
-    return () => {
-      setActiveAuditCase(null);
-    };
-  }, [caseId]);
-
-  useEffect(() => {
-    if (enabled) return;
-    const key = `${caseId}:${profile}`;
+    const key = `${caseId}:${user?.id ?? profile}`;
     if (lastRecorded.current === key) return;
+    lastRecorded.current = key;
     const record = async () => {
       try {
-        await appendAuditEvents([
-          {
-            caseId,
-            action: "case_viewed_unmasked",
-            summary: "Caso aberto sem máscara de sigilo.",
-            actorProfile: profile,
-          },
-        ]);
-        lastRecorded.current = key;
+        if (user) {
+          if (!supabase) throw new Error("O Lovable Cloud não está configurado neste ambiente.");
+          const { error } = await supabase.rpc("record_case_view", {
+            p_case_id: caseId,
+          });
+          if (error) throw error;
+        } else {
+          await appendAuditEvents([
+            {
+              caseId,
+              action: "case_viewed",
+              summary: "Caso aberto no ambiente demonstrativo.",
+              actorProfile: profile,
+            },
+          ]);
+        }
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Falha ao registrar acesso sem máscara.");
+        toast.error(error instanceof Error ? error.message : "Falha ao registrar acesso ao caso.");
       }
     };
     void record();
-  }, [caseId, enabled, profile]);
+  }, [caseId, profile, user]);
 
   return null;
 }
@@ -90,7 +93,37 @@ function CaseDetails() {
   const tx = useTx();
   const { maskFamily, maskName, maskAddress, lgpdMode } = usePrivacy();
   const { profile, isReadOnly } = useGovtechProfile();
+  const auth = useAuth();
+  const [sensitiveData, setSensitiveData] = useState<
+    { caseId: string; userId: string; child: string; family: string } | null
+  >(null);
+  const [loadingSensitiveData, setLoadingSensitiveData] = useState(false);
   const c = useCases().find((x) => x.id === caseId);
+  const visibleSensitiveData =
+    auth.user &&
+    sensitiveData?.caseId === caseId &&
+    sensitiveData.userId === auth.user.id
+      ? sensitiveData
+      : null;
+  const revealSensitiveData = async () => {
+    setLoadingSensitiveData(true);
+    try {
+      if (!auth.user) throw new Error("É necessário estar autenticado para visualizar estes dados.");
+      setSensitiveData({
+        caseId,
+        userId: auth.user.id,
+        ...(await getCaseSensitiveData(caseId)),
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : tx("Não foi possível carregar os dados identificáveis.", "Could not load identifying data.", "No se pudieron cargar los datos identificables."),
+      );
+    } finally {
+      setLoadingSensitiveData(false);
+    }
+  };
   const back = (
     <Button asChild variant="ghost" className="mb-4 -ml-3">
       <Link to="/cases" search={{}}>
@@ -111,7 +144,7 @@ function CaseDetails() {
   return (
     <>
       {back}
-      <UnmaskedCaseViewAudit caseId={c.id} enabled={lgpdMode} />
+      <CaseViewAudit caseId={c.id} />
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
@@ -128,7 +161,10 @@ function CaseDetails() {
             )}
           </div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            {t.cases.family} {maskFamily(c.family)}
+            {t.cases.family}{" "}
+            {visibleSensitiveData
+              ? visibleSensitiveData.family
+              : maskFamily(c.family) || tx("protegida", "protected", "protegida")}
           </h1>
           <div className="mt-2 flex flex-wrap gap-2">
             <RiskBadge risk={c.risk} />
@@ -189,8 +225,24 @@ function CaseDetails() {
             <Info
               icon={User}
               label={tx("Criança / adolescente", "Child / teen", "Niño / adolescente")}
-              value={`${maskName(c.child)} · ${c.age} ${tx("anos", "years", "años")}`}
+              value={`${visibleSensitiveData ? visibleSensitiveData.child : maskName(c.child) || tx("Identificação protegida", "Identity protected", "Identidad protegida")} · ${c.age} ${tx("anos", "years", "años")}`}
             />
+            {auth.user && auth.profile?.approved_at && !isReadOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void revealSensitiveData()}
+                disabled={loadingSensitiveData || Boolean(visibleSensitiveData)}
+              >
+                <Eye aria-hidden="true" className="mr-2 size-4" />
+                {loadingSensitiveData
+                  ? tx("Registrando acesso…", "Recording access…", "Registrando acceso…")
+                  : visibleSensitiveData
+                    ? tx("Acesso identificado e auditado", "Identified access audited", "Acceso identificado auditado")
+                    : tx("Visualizar dados completos · acesso auditado", "View full data · audited access", "Ver datos completos · acceso auditado")}
+              </Button>
+            )}
             {c.supportNeed && (
               <Info
                 icon={ShieldAlert}

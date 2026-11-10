@@ -4,10 +4,14 @@ import { getAuthSnapshot, useAuth } from "@/lib/auth-store";
 import { supabase } from "@/lib/supabase";
 
 export type AuditAction =
+  | "case_viewed"
+  | "case_sensitive_data_viewed"
   | "case_viewed_unmasked"
   | "csv_exported"
   | "letter_generated"
   | "case_status_changed"
+  | "protective_measure_added"
+  | "protective_measure_updated"
   | "protective_measure_status_changed"
   | "privacy_mode_disabled";
 
@@ -185,7 +189,7 @@ export function useAuditEvents(caseId?: string) {
         setCloudLoading(false);
         setCloudEvents((data ?? []).map((row): AuditEvent => {
           const metadata = row.client_metadata as Record<string, unknown> | null;
-          const profileRole = metadata?.profile_role;
+          const profileRole = metadata?.["profile_role"];
           return {
             id: row.id,
             caseId: row.case_id,
@@ -205,8 +209,8 @@ export function useAuditEvents(caseId?: string) {
                 : "Matrícula restrita",
             simulatedIp: "IP não coletado pelo cliente",
             simulatedBrowser:
-              typeof metadata?.user_agent === "string"
-                ? metadata.user_agent
+              typeof metadata?.["user_agent"] === "string"
+                ? metadata["user_agent"]
                 : "Navegador não informado",
           };
         }));

@@ -10,7 +10,7 @@ describe("maskAddress", () => {
       "Endereço sigiloso · Centro"
     );
   });
-  it("keeps the full address when privacy mode is off", () => {
-    expect(maskAddress("Rua das Flores, 120", false)).toBe("Rua das Flores, 120");
+  it("always hides a full address", () => {
+    expect(maskAddress("Rua das Flores, 120")).toBe("Endereço sigiloso");
   });
 });

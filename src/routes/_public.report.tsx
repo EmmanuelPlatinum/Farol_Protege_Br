@@ -102,19 +102,23 @@ function Report() {
                   ? tx("Denúncia cidadã", "Citizen report", "Denuncia ciudadana")
                   : tx("Formulário demonstrativo", "Demonstration form", "Formulario demostrativo")}
               </CardTitle>
-              <Badge variant="outline">Sem envio ao Conselho</Badge>
+              <Badge variant="outline">
+                {isLovableCloudConfigured
+                  ? tx("Fila restrita configurada", "Restricted queue configured", "Cola restringida configurada")
+                  : tx("Demonstração local", "Local demo", "Demostración local")}
+              </Badge>
             </div>
             <CardDescription>
               {tx(
                 isLovableCloudConfigured
-                  ? "A denúncia será encaminhada à fila restrita da regional selecionada. Não informe nomes, documentos ou dados clínicos desnecessários."
-                  : "Este protótipo salva o exemplo apenas neste navegador. Não use para registrar uma denúncia real.",
+                  ? "A denúncia em texto será encaminhada à fila restrita da regional selecionada. Áudios, fotos e vídeos ainda não são aceitos. Não informe nomes, documentos ou dados clínicos desnecessários."
+                  : "Este protótipo salva o exemplo apenas neste navegador. Áudios, fotos e vídeos não são aceitos. Não use para registrar uma denúncia real.",
                 isLovableCloudConfigured
-                  ? "The report will be sent to the restricted queue for the selected region. Do not include names, IDs, or unnecessary clinical data."
-                  : "This prototype stores the example only in this browser. Do not use it to submit a real report.",
+                  ? "The text report will be sent to the restricted queue for the selected region. Audio, photos, and videos are not accepted yet. Do not include names, IDs, or unnecessary clinical data."
+                  : "This prototype stores the example only in this browser. Audio, photos, and videos are not accepted. Do not use it to submit a real report.",
                 isLovableCloudConfigured
-                  ? "La denuncia se enviará a la cola restringida de la regional seleccionada. No incluya nombres, documentos ni datos clínicos innecesarios."
-                  : "Este prototipo guarda el ejemplo solo en este navegador. No lo use para una denuncia real.",
+                  ? "La denuncia de texto se enviará a la cola restringida de la regional seleccionada. Aún no se aceptan audios, fotos ni videos. No incluya nombres, documentos ni datos clínicos innecesarios."
+                  : "Este prototipo guarda el ejemplo solo en este navegador. No se aceptan audios, fotos ni videos. No lo use para una denuncia real.",
               )}
             </CardDescription>
           </CardHeader>

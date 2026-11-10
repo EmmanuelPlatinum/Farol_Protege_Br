@@ -135,34 +135,11 @@ function Tracking() {
                     <p className="mt-4 flex items-center gap-2 text-sm">
                       <CheckCircle2 className="size-4 text-primary" />
                       {tx(
-                        isLovableCloudConfigured
-                          ? "Status público limitado; detalhes do relato são sigilosos"
-                          : "Status registrado no exemplo local",
-                        isLovableCloudConfigured
-                          ? "Limited public status; report details are confidential"
-                          : "Status shown in the local demo",
-                        isLovableCloudConfigured
-                          ? "Estado público limitado; los detalles del relato son confidenciales"
-                          : "Estado registrado en el ejemplo local",
+                        "A consulta pública exibe apenas um estado geral. Detalhes do atendimento permanecem sigilosos.",
+                        "The public lookup shows only a general status. Case details remain confidential.",
+                        "La consulta pública solo muestra un estado general. Los detalles permanecen confidenciales.",
                       )}
                     </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {tx(isLovableCloudConfigured ? "Recebida em:" : "Data exibida no exemplo:", isLovableCloudConfigured ? "Received:" : "Date in this demo:", isLovableCloudConfigured ? "Recibida:" : "Fecha del ejemplo:")}{" "}
-                      {result.date}
-                    </p>
-                    <div className="mt-4 space-y-3">
-                      {result.timeline.map((step) => (
-                        <div
-                          key={`${step.stepNumber}-${step.date}`}
-                          className="flex gap-3 border-l-2 border-primary/30 pl-3"
-                        >
-                          <div>
-                            <p className="text-sm font-medium">{step.title}</p>
-                            <p className="text-xs text-muted-foreground">{step.date}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 ) : (
                   <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm">

@@ -4,13 +4,17 @@ import {
   AlertTriangle,
   CalendarClock,
   CheckCircle2,
+  CloudOff,
   Clock3,
+  Download,
   FileText,
   MapPin,
   ShieldAlert,
   ShieldCheck,
   Siren,
   UserRound,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/app-header";
@@ -61,9 +65,77 @@ const visits = [
 function Operations() {
   const cases = useCases();
   const [visitStatuses, setVisitStatuses] = useState<Record<string, VisitStatus>>({});
+  const [online, setOnline] = useState(true);
   const [escutaScheduled, setEscutaScheduled] = useState(false);
   const [handoff, setHandoff] = useState(false);
   const [handoffRead, setHandoffRead] = useState(false);
+
+  useEffect(() => {
+    const updateOnline = () => setOnline(navigator.onLine);
+    updateOnline();
+    window.addEventListener("online", updateOnline);
+    window.addEventListener("offline", updateOnline);
+    return () => {
+      window.removeEventListener("online", updateOnline);
+      window.removeEventListener("offline", updateOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("farol_offline_visit_statuses");
+      if (!saved) return;
+      const parsed: unknown = JSON.parse(saved);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("Formato de rascunhos offline inválido.");
+      }
+      const validEntries = Object.entries(parsed).filter(
+        ([id, status]) =>
+          visits.some((visit) => visit.id === id) &&
+          (status === "pending" || status === "checked-in" || status === "checked-out"),
+      );
+      setVisitStatuses(Object.fromEntries(validEntries) as Record<string, VisitStatus>);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? `Não foi possível carregar os rascunhos offline: ${error.message}`
+          : "Não foi possível carregar os rascunhos offline.",
+      );
+    }
+  }, []);
+
+  const updateVisitStatus = (visitId: string, status: VisitStatus) => {
+    const next = { ...visitStatuses, [visitId]: status };
+    setVisitStatuses(next);
+    try {
+      localStorage.setItem("farol_offline_visit_statuses", JSON.stringify(next));
+      toast.success(
+        online ? "Check-in salvo neste dispositivo." : "Check-in salvo offline neste dispositivo.",
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? `Não foi possível salvar o check-in neste dispositivo: ${error.message}`
+          : "Não foi possível salvar o check-in neste dispositivo.",
+      );
+    }
+  };
+
+  const exportVisitDrafts = () => {
+    const data = {
+      format: "farol-visit-statuses-v1",
+      exportedAt: new Date().toISOString(),
+      visits: Object.entries(visitStatuses).map(([visitId, status]) => ({ visitId, status })),
+    };
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
+    );
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "farol-rascunhos-visitas.json";
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   return (
     <>
@@ -75,16 +147,39 @@ function Operations() {
         role="note"
         className="mb-5 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-muted-foreground"
       >
-        Painel demonstrativo. Estados e notificações são locais e não enviam dados a órgãos, equipes
-        externas ou serviços de emergência.
+        Painel demonstrativo. Os status de visita ficam somente neste navegador e não são
+        sincronizados com o servidor. Não registre dados identificáveis de crianças neste protótipo.
       </div>
       <Tabs defaultValue="visits">
         <TabsList className="mb-4 h-auto flex-wrap justify-start">
           <TabsTrigger value="visits">Visitas de campo</TabsTrigger>
           <TabsTrigger value="deadlines">Prazos e escuta</TabsTrigger>
           <TabsTrigger value="handoff">Passagem de plantão</TabsTrigger>
+          <TabsTrigger value="integrations">Integrações</TabsTrigger>
         </TabsList>
         <TabsContent value="visits" className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+            <p className="flex items-center gap-2 text-sm" role="status" aria-live="polite">
+              {online ? (
+                <Wifi className="size-4 text-emerald-600" />
+              ) : (
+                <WifiOff className="size-4 text-amber-600" />
+              )}
+              {online
+                ? "Conectado · rascunhos continuam locais"
+                : "Sem conexão · check-ins são salvos neste dispositivo"}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={Object.keys(visitStatuses).length === 0}
+              onClick={exportVisitDrafts}
+            >
+              <Download className="mr-2 size-4" />
+              Exportar status locais
+            </Button>
+          </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <Metric icon={MapPin} title="Visitas na rota de hoje" value={String(visits.length)} />
             <Metric
@@ -133,11 +228,7 @@ function Operations() {
                     {status === "pending" && (
                       <Button
                         onClick={() => {
-                          setVisitStatuses((previous) => ({
-                            ...previous,
-                            [visit.id]: "checked-in",
-                          }));
-                          toast.success("Check-in de demonstração registrado.");
+                          updateVisitStatus(visit.id, "checked-in");
                         }}
                       >
                         <ShieldCheck className="mr-2 size-4" />
@@ -148,11 +239,7 @@ function Operations() {
                       <Button
                         variant="outline"
                         onClick={() => {
-                          setVisitStatuses((previous) => ({
-                            ...previous,
-                            [visit.id]: "checked-out",
-                          }));
-                          toast.success("Check-out de demonstração registrado.");
+                          updateVisitStatus(visit.id, "checked-out");
                         }}
                       >
                         Check-out
@@ -265,8 +352,90 @@ function Operations() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="integrations" className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <IntegrationCard
+              title="Alertas críticos de plantão"
+              status="Não conectado"
+              description="O prazo de aceite de 15 minutos e o escalonamento exigem processamento no servidor e um provedor SMS/WhatsApp. Esta demonstração não envia alertas."
+            />
+            <IntegrationCard
+              title="Limites territoriais por GPS"
+              status="Aguardando fonte oficial"
+              description="A seleção por coordenadas foi desativada. O sistema não atribuirá uma regional até receber e validar os polígonos oficiais aprovados."
+            />
+            <IntegrationCard
+              title="Recibo de encaminhamento à rede"
+              status="Não conectado"
+              description="Os retornos de SME, CRAS e CREAS precisam de integração institucional autenticada. Nenhum link ou recibo demonstrativo é apresentado como confirmação real."
+            />
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="size-5 text-primary" />
+                  Assinatura eletrônica do documento
+                </CardTitle>
+                <CardDescription>
+                  A assinatura GOV.BR ainda é um fluxo manual, fora deste sistema.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Exporte o documento, confira se não contém dados desnecessários e assine no portal
+                  oficial. A assinatura não é aplicada nem validada pelo Farol.
+                </p>
+                <Button asChild variant="outline">
+                  <a href="https://assinador.iti.br/" target="_blank" rel="noopener noreferrer">
+                    Abrir Assinador GOV.BR / ITI
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            <IntegrationCard
+              title="Mídia em denúncias"
+              status="Não habilitada"
+              description="Áudios, fotos e vídeos não são enviados neste protótipo. A recepção segura exige armazenamento privado, remoção de metadados e controles de acesso no backend."
+            />
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CloudOff className="size-5 text-primary" />
+                  Rascunhos de visita offline
+                </CardTitle>
+                <CardDescription>
+                  Check-ins de demonstração persistem localmente no navegador.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                A exportação manual de status está disponível na aba Visitas. A sincronização
+                automática e o armazenamento criptografado de dados reais ainda não estão
+                implementados.
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
       </Tabs>
     </>
+  );
+}
+
+function IntegrationCard({
+  title,
+  status,
+  description,
+}: {
+  title: string;
+  status: string;
+  description: string;
+}) {
+  return (
+    <Card className="shadow-card">
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+        <CardDescription>{status}</CardDescription>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">{description}</CardContent>
+    </Card>
   );
 }
 

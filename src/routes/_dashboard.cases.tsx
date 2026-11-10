@@ -17,6 +17,8 @@ import { getDateKey, isDueWithinDays } from "@/lib/protective-measures";
 import { appendAuditEvents } from "@/lib/audit-store";
 import { useGovtechProfile } from "@/lib/govtech-profile";
 import { toast } from "sonner";
+import { buildCsv } from "@/lib/csv";
+import { getCmdcaReportSummary, summarizeCmdcaRows } from "@/lib/cmdca-report";
 
 export const Route = createFileRoute("/_dashboard/cases")({
   validateSearch: (search: Record<string, unknown>): { measuresDue?: "week" | undefined } =>
@@ -39,7 +41,7 @@ const variant = { open: "warning", urgent: "danger", closed: "success" } as cons
 function Cases() {
   const { t } = useI18n();
   const tx = useTx();
-  const { maskFamily, maskName, lgpdMode } = usePrivacy();
+  const { maskFamily, maskName } = usePrivacy();
   const { profile } = useGovtechProfile();
   const navigate = useNavigate();
   const measuresDue = Route.useSearch()["measuresDue"];
@@ -48,6 +50,53 @@ function Cases() {
   const [status, setStatus] = useState("all");
   const [risk, setRisk] = useState("all");
   const [period, setPeriod] = useState("all");
+
+  const exportCsv = async () => {
+    try {
+      const databaseSummary = await getCmdcaReportSummary();
+      const summary =
+        databaseSummary ??
+        summarizeCmdcaRows(
+          rows.map((c) => ({
+            date: c.date,
+            region: c.councilRegion ?? "Não informada",
+            category: c.type,
+            status: c.status,
+          })),
+        );
+
+      if (databaseSummary === null) {
+        await appendAuditEvents([
+          {
+            caseId: null,
+            action: "csv_exported",
+            summary: `Exportação demonstrativa de resumo agregado (${summary.length} grupo(s)).`,
+            actorProfile: profile,
+          },
+        ]);
+      }
+
+      const content = buildCsv(
+        ["Período", "Região", "Categoria agregada", "Status agregado", "Total"],
+        summary.map((row) => [row.period, row.region, row.category, row.status, row.total]),
+      );
+      const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `relatorio_mensal_cmdca_${new Date().toISOString().slice(0, 7)}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : tx("Falha ao gerar o relatório agregado.", "Could not generate the aggregated report.", "No se pudo generar el informe agregado."),
+      );
+    }
+  };
 
   const rows = useMemo(() => {
     const now = Date.now();
@@ -66,37 +115,9 @@ function Cases() {
 
   return (
     <>
-      <PageHeader title={t.cases.title} subtitle={tx("Casos críticos ficam sempre no topo da lista.", "Critical cases always stay at the top.", "Los casos críticos siempre permanecen al inicio de la lista.")} action={<><Button variant="outline" className="gap-2" onClick={async () => {
-        try {
-          await appendAuditEvents(
-            rows.length
-              ? rows.map((c) => ({
-                  caseId: c.id,
-                  action: "csv_exported" as const,
-                  summary: `Caso incluído na exportação CSV (${rows.length} registro(s)); modo sigilo ${lgpdMode ? "ativo" : "desativado"}.`,
-                  actorProfile: profile,
-                }))
-              : [
-                  {
-                    caseId: null,
-                    action: "csv_exported" as const,
-                    summary: "Exportação CSV sem registros.",
-                    actorProfile: profile,
-                  },
-                ],
-          );
-        } catch (error) {
-          toast.error(error instanceof Error ? error.message : tx("Falha ao registrar exportação; arquivo não gerado.", "Could not record export; file not generated.", "No se pudo registrar la exportación; archivo no generado."));
-          return;
-        }
-        const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-        const head = ["Nº", "Criança", "Família", "Idade", "Tipo de violação", "Risco", "Status", "Conselheiro", "Providências"];
-        const lines = rows.map((c) => [c.id, maskName(c.child), maskFamily(c.family), c.age, c.type, c.risk, t.status[c.status], c.counselor, (c.timeline ?? []).map((e) => e.title).join(" | ")].map(esc).join(";"));
-        const blob = new Blob(["\uFEFF" + [head.map(esc).join(";"), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
-        const url = URL.createObjectURL(blob); const a = document.createElement("a");
-        a.href = url; a.download = `relatorio_mensal_cmdca_${new Date().toISOString().slice(0, 7)}.csv`;
-        document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
-      }}><Download className="size-4" />{tx("Exportar Relatório Mensal", "Export Monthly Report", "Exportar Informe Mensual")}</Button><NewCaseDialog /></>} />
+      <PageHeader title={t.cases.title} subtitle={tx("Casos críticos ficam sempre no topo da lista.", "Critical cases always stay at the top.", "Los casos críticos siempre permanecen al inicio de la lista.")} action={<><Button variant="outline" className="gap-2" onClick={() => void exportCsv()}>
+        <Download className="size-4" />{tx("Exportar Relatório Mensal", "Export Monthly Report", "Exportar Informe Mensual")}
+      </Button><NewCaseDialog /></>} />
       {measuresDue === "week" && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
           <p className="flex items-center gap-2 text-sm font-medium">
@@ -160,8 +181,8 @@ function Cases() {
               <TableRow key={r.id} className="cursor-pointer" onClick={() => navigate({ to: "/case/$caseId", params: { caseId: r.id } })}>
                 <TableCell className="font-mono text-xs"><span className="inline-flex items-center gap-1"><Lock className="size-3 text-muted-foreground" />#{r.id}</span></TableCell>
                 <TableCell className="font-medium">
-                  <span>{t.cases.family} {maskFamily(r.family)}</span>
-                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">({maskName(r.child)})</span>
+                  <span>{t.cases.family} {maskFamily(r.family) || tx("protegida", "protected", "protegida")}</span>
+                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">({maskName(r.child) || tx("identificação protegida", "identity protected", "identidad protegida")})</span>
                 </TableCell>
                 <TableCell><RiskBadge risk={r.risk} /></TableCell>
                 <TableCell className="hidden sm:table-cell text-muted-foreground">{r.type}</TableCell>

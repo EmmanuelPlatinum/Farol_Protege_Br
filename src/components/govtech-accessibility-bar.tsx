@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Contrast, Ear, Languages, Moon, Sun, Volume2 } from "lucide-react";
+import { Contrast, Ear } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -12,6 +12,7 @@ export function GovtechAccessibilityBar() {
   const tx = useTx();
   const [fontScale, setFontScale] = useState<0 | 1 | 2>(0);
   const [highContrast, setHighContrast] = useState(false);
+  const [librasLoading, setLibrasLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -36,13 +37,19 @@ export function GovtechAccessibilityBar() {
     if (scale === 2) document.documentElement.classList.add("font-xl");
   };
 
+  const storePreference = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.error("Could not save accessibility preference.", error);
+    }
+  };
+
   const increaseFont = () => {
     const next = (Math.min(fontScale + 1, 2) as 0 | 1 | 2);
     setFontScale(next);
     applyFontScale(next);
-    try {
-      localStorage.setItem("farol_font_scale", String(next));
-    } catch {}
+    storePreference("farol_font_scale", String(next));
     toast.info(tx("Fonte aumentada", "Font size increased", "Fuente aumentada"));
   };
 
@@ -50,9 +57,7 @@ export function GovtechAccessibilityBar() {
     const next = (Math.max(fontScale - 1, 0) as 0 | 1 | 2);
     setFontScale(next);
     applyFontScale(next);
-    try {
-      localStorage.setItem("farol_font_scale", String(next));
-    } catch {}
+    storePreference("farol_font_scale", String(next));
     toast.info(tx("Fonte padrão restaurada", "Standard font size restored", "Fuente normal"));
   };
 
@@ -60,9 +65,7 @@ export function GovtechAccessibilityBar() {
     const next = !highContrast;
     setHighContrast(next);
     document.documentElement.classList.toggle("high-contrast", next);
-    try {
-      localStorage.setItem("farol_contrast", String(next));
-    } catch {}
+    storePreference("farol_contrast", String(next));
     toast.info(
       next
         ? tx("Alto contraste ativado", "High contrast enabled", "Alto contraste activado")
@@ -71,13 +74,53 @@ export function GovtechAccessibilityBar() {
   };
 
   const handleLibras = () => {
-    toast.info(
+    if (document.querySelector('script[data-farol-vlibras="true"]')) {
+      toast.info(
+        tx(
+          "O VLibras já foi carregado. Use o botão flutuante para iniciar a tradução.",
+          "VLibras is already loaded. Use its floating button to start translation.",
+          "VLibras ya está cargado. Use el botón flotante para iniciar la traducción.",
+        ),
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
       tx(
-        "Acessibilidade em LIBRAS: Suporte ao VLibras ativo para tradução automática em Língua Brasileira de Sinais.",
-        "LIBRAS Accessibility: Brazilian Sign Language compatibility enabled.",
-        "Accesibilidad en Lengua de Señas habilitada."
-      )
+        "O VLibras é carregado de um serviço externo. O conteúdo exibido pode ser processado pelo serviço para tradução. Continuar?",
+        "VLibras is loaded from an external service. Displayed content may be processed by that service for translation. Continue?",
+        "VLibras se carga desde un servicio externo. El contenido mostrado puede ser procesado por el servicio para traducirlo. ¿Continuar?",
+      ),
     );
+    if (!confirmed) return;
+
+    setLibrasLoading(true);
+    const script = document.createElement("script");
+    script.src = "https://vlibras.gov.br/app/vlibras-plugin.js";
+    script.async = true;
+    script.dataset["farolVlibras"] = "true";
+    script.onload = () => {
+      setLibrasLoading(false);
+      toast.success(
+        tx(
+          "VLibras carregado. Use o botão flutuante para iniciar a tradução.",
+          "VLibras loaded. Use its floating button to start translation.",
+          "VLibras cargado. Use el botón flotante para iniciar la traducción.",
+        ),
+      );
+    };
+    script.onerror = () => {
+      script.remove();
+      setLibrasLoading(false);
+      toast.error(
+        tx(
+          "Não foi possível carregar o VLibras. Verifique sua conexão e tente novamente.",
+          "Could not load VLibras. Check your connection and try again.",
+          "No se pudo cargar VLibras. Verifique su conexión e inténtelo de nuevo.",
+        ),
+      );
+    };
+    document.body.appendChild(script);
   };
 
   return (
@@ -174,10 +217,12 @@ export function GovtechAccessibilityBar() {
                   variant="ghost"
                   size="sm"
                   onClick={handleLibras}
+                  disabled={librasLoading}
+                  aria-label={tx("Carregar tradutor VLibras", "Load VLibras translator", "Cargar traductor VLibras")}
                   className="h-7 px-2 text-[11px] gap-1 text-primary hover:bg-primary/10"
                 >
                   <Ear className="size-3.5" />
-                  <span className="font-semibold">LIBRAS</span>
+                  <span className="font-semibold">{librasLoading ? "…" : "LIBRAS"}</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
@@ -200,4 +245,3 @@ export function GovtechAccessibilityBar() {
     </nav>
   );
 }
-

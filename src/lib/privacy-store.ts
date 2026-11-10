@@ -1,60 +1,12 @@
-import { useSyncExternalStore } from "react";
-
-const LGPD_STORAGE_KEY = "farol_lgpd_mode";
-
-let lgpdMode = true;
-let loaded = false;
-const listeners = new Set<() => void>();
-
-function load() {
-  if (loaded || typeof window === "undefined") return;
-  loaded = true;
-  try {
-    const raw = localStorage.getItem(LGPD_STORAGE_KEY);
-    lgpdMode = true;
-    if (raw !== "true") localStorage.setItem(LGPD_STORAGE_KEY, "true");
-  } catch {
-    lgpdMode = true;
-  }
-}
-
-function save() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(LGPD_STORAGE_KEY, String(lgpdMode));
-  } catch {
-    /* ignore */
-  }
-}
-
-const emit = () => {
-  save();
-  listeners.forEach((l) => l());
-};
-
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  if (!loaded) {
-    load();
-    queueMicrotask(() => listeners.forEach((l) => l()));
-  }
-  return () => {
-    listeners.delete(listener);
-  };
-};
-
-const getSnapshot = () => lgpdMode;
-const getServerSnapshot = () => true;
-
 /**
- * Pure helper to mask the name of minors into initials.
+ * Masks the name of minors into initials.
  * Examples:
  * - "Lucas Silva" -> "L. S."
  * - "Maria Eduarda Santos" -> "M. E. S."
  * - "J. S." -> "J. S."
  */
-export function maskName(name: string, enabled = true): string {
-  if (!enabled || !name) return name;
+export function maskName(name: string): string {
+  if (!name) return name;
   const trimmed = name.trim();
   if (!trimmed) return "";
 
@@ -75,44 +27,30 @@ export function maskName(name: string, enabled = true): string {
 }
 
 /**
- * Pure helper to mask family surnames when in LGPD mode.
+ * Masks family surnames.
  * Example: "Silva" -> "S."
  */
-export function maskFamily(family: string, enabled = true): string {
-  if (!enabled || !family) return family;
+export function maskFamily(family: string): string {
+  if (!family) return family;
   const trimmed = family.trim();
   if (!trimmed) return "";
   if (trimmed.length <= 2 && trimmed.endsWith(".")) return trimmed;
   return `${trimmed.charAt(0).toUpperCase()}.`;
 }
 
-/** Hides addresses in LGPD mode, keeping only the last segment (e.g. neighbourhood). */
-export function maskAddress(address: string, enabled = true): string {
-  if (!enabled || !address) return address;
+/** Hides street-level address details, keeping only the last segment (e.g. neighbourhood). */
+export function maskAddress(address: string): string {
+  if (!address) return address;
   const parts = address.split(/[,\-–—]/).map((p) => p.trim()).filter(Boolean);
   const tail = parts.length > 1 ? parts[parts.length - 1] : "";
-  return tail ? `Endereço sigiloso · ${tail}` : "Endereço sigiloso";
-}
-
-export function setLgpdMode(val: boolean) {
-  lgpdMode = val;
-  emit();
-}
-
-export function toggleLgpdMode() {
-  lgpdMode = !lgpdMode;
-  emit();
+  return tail && !/\d/.test(tail) ? `Endereço sigiloso · ${tail}` : "Endereço sigiloso";
 }
 
 export function usePrivacy() {
-  const isLgpdActive = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
   return {
-    lgpdMode: isLgpdActive,
-    setLgpdMode,
-    toggleLgpdMode,
-    maskName: (name: string) => maskName(name, isLgpdActive),
-    maskFamily: (fam: string) => maskFamily(fam, isLgpdActive),
-    maskAddress: (a: string) => maskAddress(a, isLgpdActive),
+    lgpdMode: true as const,
+    maskName,
+    maskFamily,
+    maskAddress,
   };
 }

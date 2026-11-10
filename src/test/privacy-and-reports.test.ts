@@ -19,27 +19,21 @@ describe("Protection triage", () => {
 
 describe("LGPD Privacy & Name Masking", () => {
   it("masks child full names into initials", () => {
-    expect(maskName("Lucas Silva", true)).toBe("L. S.");
-    expect(maskName("Maria Eduarda Santos", true)).toBe("M. E. S.");
-    expect(maskName("Ana Clara", true)).toBe("A. C.");
+    expect(maskName("Lucas Silva")).toBe("L. S.");
+    expect(maskName("Maria Eduarda Santos")).toBe("M. E. S.");
+    expect(maskName("Ana Clara")).toBe("A. C.");
   });
 
   it("preserves already masked initials", () => {
-    expect(maskName("J. S.", true)).toBe("J. S.");
-    expect(maskName("L. O.", true)).toBe("L. O.");
-    expect(maskName("A.S.", true)).toBe("A. S.");
-  });
-
-  it("does not mask when privacy mode is disabled", () => {
-    expect(maskName("Lucas Silva", false)).toBe("Lucas Silva");
-    expect(maskName("Maria Eduarda Santos", false)).toBe("Maria Eduarda Santos");
+    expect(maskName("J. S.")).toBe("J. S.");
+    expect(maskName("L. O.")).toBe("L. O.");
+    expect(maskName("A.S.")).toBe("A. S.");
   });
 
   it("masks family surnames into initials", () => {
-    expect(maskFamily("Silva", true)).toBe("S.");
-    expect(maskFamily("Oliveira", true)).toBe("O.");
-    expect(maskFamily("Pereira", true)).toBe("P.");
-    expect(maskFamily("Silva", false)).toBe("Silva");
+    expect(maskFamily("Silva")).toBe("S.");
+    expect(maskFamily("Oliveira")).toBe("O.");
+    expect(maskFamily("Pereira")).toBe("P.");
   });
 });
 
@@ -52,16 +46,18 @@ describe("Public Reports & PIN Tracking", () => {
     expect(normalizePin(" 1042 ")).toBe("#PROT-1042");
   });
 
-  it("finds pre-registered reports by PIN and partial pin", () => {
+  it("finds reports without exposing investigation details or internal statuses", () => {
     const report1 = findPublicReportByPin("8921");
     expect(report1).not.toBeNull();
     expect(report1?.pin).toBe("#PROT-8921");
-    expect(report1?.type).toBe("Violência doméstica");
-    expect(report1?.timeline.length).toBeGreaterThan(0);
+    expect(report1?.type).toBe("Denúncia cidadã");
+    expect(report1?.timeline).toEqual([]);
+    expect(report1?.summary).not.toContain("medidas protetivas");
 
     const report2 = findPublicReportByPin("#PROT-1042");
     expect(report2).not.toBeNull();
-    expect(report2?.status).toBe("visit_scheduled");
+    expect(report2?.status).toBe("screening");
+    expect(report2?.statusLabel).toBe("Em processamento");
 
     const notFound = findPublicReportByPin("9999");
     expect(notFound).toBeNull();
@@ -81,7 +77,8 @@ describe("Public Reports & PIN Tracking", () => {
     const fetched = findPublicReportByPin(created.pin);
     expect(fetched).not.toBeNull();
     expect(fetched?.pin).toBe(created.pin);
-    expect(fetched?.type).toBe("Negligência");
-    expect(fetched?.supportNeed).toBe("suspected");
+    expect(fetched?.type).toBe("Denúncia cidadã");
+    expect(fetched?.supportNeed).toBeUndefined();
+    expect(fetched?.statusLabel).toBe("Em processamento");
   });
 });

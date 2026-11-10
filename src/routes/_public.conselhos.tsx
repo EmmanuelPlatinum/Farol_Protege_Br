@@ -93,16 +93,6 @@ export const Route = createFileRoute("/_public/conselhos")({
 const normalize = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
-function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const radians = (degrees: number) => (degrees * Math.PI) / 180;
-  const haversine =
-    Math.sin(radians(lat2 - lat1) / 2) ** 2 +
-    Math.cos(radians(lat1)) *
-      Math.cos(radians(lat2)) *
-      Math.sin(radians(lon2 - lon1) / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(haversine));
-}
-
 function getPhoneHref(phone?: string) {
   const digits = phone?.replace(/\D/g, "") ?? "";
   if (digits.length === 10 || digits.length === 11) return `tel:${digits}`;
@@ -154,54 +144,6 @@ function ConselhosPage() {
     }
   };
 
-  const locate = () => {
-    if (!navigator.geolocation) {
-      toast.error(
-        tx(
-          "Localização indisponível neste navegador.",
-          "Location is unavailable in this browser.",
-          "La ubicación no está disponible en este navegador.",
-        ),
-      );
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        const nearest = councils.reduce((closest, candidate) =>
-          distanceKm(coords.latitude, coords.longitude, candidate.lat, candidate.lng) <
-          distanceKm(coords.latitude, coords.longitude, closest.lat, closest.lng)
-            ? candidate
-            : closest,
-        );
-        setSelected(nearest.id);
-        toast.success(
-          tx(
-            `Referência regional mais próxima: ${nearest.name}`,
-            `Nearest regional reference: ${nearest.name}`,
-            `Referencia regional más cercana: ${nearest.name}`,
-          ),
-        );
-      },
-      (error) => {
-        const message =
-          error.code === error.PERMISSION_DENIED
-            ? tx(
-                "Permita o acesso à localização para usar este recurso.",
-                "Allow location access to use this feature.",
-                "Permita el acceso a la ubicación para usar esta función.",
-              )
-            : tx(
-                "Não foi possível obter sua localização. Tente novamente.",
-                "Could not get your location. Please try again.",
-                "No se pudo obtener su ubicación. Inténtelo de nuevo.",
-              );
-        toast.error(message);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-    );
-  };
-
   const address = council.verifiedPublicAddress
     ? `${council.verifiedPublicAddress}, Cuiabá - MT`
     : undefined;
@@ -251,9 +193,9 @@ function ConselhosPage() {
           <AlertCircle className="mt-0.5 size-5 shrink-0 text-amber-700 dark:text-amber-400" />
           <p className="text-muted-foreground">
             {tx(
-              "Informações demonstrativas: os pontos do mapa são referências aproximadas, não endereços das unidades. Bairros, endereços e telefones oficiais ainda precisam ser confirmados. Não se desloque com base neste mapa.",
-              "Demonstration information: map points are approximate references, not unit addresses. Official neighborhoods, addresses, and phone numbers still need confirmation. Do not travel based on this map.",
-              "Información demostrativa: los puntos del mapa son referencias aproximadas, no direcciones de las unidades. Los barrios, direcciones y teléfonos oficiales aún deben confirmarse. No se desplace basándose en este mapa.",
+              "Informações demonstrativas: os pontos do mapa são referências aproximadas, não endereços ou limites territoriais oficiais. Bairros, endereços e telefones precisam ser confirmados. O GPS está desativado até a publicação dos polígonos aprovados; não use este mapa para definir competência ou deslocamento.",
+              "Demonstration information: map points are approximate references, not official addresses or territorial boundaries. Neighborhoods, addresses, and phone numbers need verification. GPS is disabled until approved polygons are published; do not use this map to determine jurisdiction or travel.",
+              "Información demostrativa: los puntos del mapa son referencias aproximadas, no direcciones ni límites territoriales oficiales. Barrios, direcciones y teléfonos deben confirmarse. El GPS está desactivado hasta publicar los polígonos aprobados; no use este mapa para definir competencia o desplazamientos.",
             )}
           </p>
         </div>
@@ -276,9 +218,19 @@ function ConselhosPage() {
               )}
             />
           </div>
-          <Button onClick={locate} variant="outline" className="h-11 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 shrink-0"
+            disabled
+            title={tx(
+              "A busca territorial por GPS aguarda a publicação dos polígonos oficiais.",
+              "Territorial GPS lookup is waiting for official boundary polygons.",
+              "La búsqueda territorial por GPS espera los polígonos oficiales.",
+            )}
+          >
             <Crosshair aria-hidden="true" className="mr-2 size-4" />
-            {tx("Usar minha localização", "Use my location", "Usar mi ubicación")}
+            {tx("Localização territorial indisponível", "Territorial lookup unavailable", "Ubicación territorial no disponible")}
           </Button>
         </div>
 

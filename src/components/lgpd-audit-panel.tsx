@@ -36,6 +36,10 @@ function formatLocalTime(timestamp: string) {
 
 function actionLabel(event: AuditEvent) {
   switch (event.action) {
+    case "case_viewed":
+      return "Visualização do caso";
+    case "case_sensitive_data_viewed":
+      return "Acesso autorizado a dados identificáveis";
     case "case_viewed_unmasked":
       return "Visualização do caso sem máscara de sigilo";
     case "csv_exported":
@@ -44,6 +48,10 @@ function actionLabel(event: AuditEvent) {
       return "Geração de minuta de ofício";
     case "case_status_changed":
       return "Alteração de status do caso";
+    case "protective_measure_added":
+      return "Inclusão de medida protetiva";
+    case "protective_measure_updated":
+      return "Atualização de medida protetiva";
     case "protective_measure_status_changed":
       return "Alteração de status de medida protetiva";
     case "privacy_mode_disabled":

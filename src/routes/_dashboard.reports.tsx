@@ -32,9 +32,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PageHeader } from "@/components/app-header";
 import { useI18n, useTx } from "@/lib/i18n";
 import { useCases } from "@/lib/cases-store";
-import { maskAddress } from "@/lib/privacy-store";
 import { usePublicReports } from "@/lib/reports-store";
 import { CloudIntakeQueue } from "@/components/cloud-intake-queue";
+import { buildCsv } from "@/lib/csv";
+import { getCmdcaReportSummary, summarizeCmdcaRows } from "@/lib/cmdca-report";
+import { appendAuditEvents } from "@/lib/audit-store";
+import { useGovtechProfile } from "@/lib/govtech-profile";
 
 export const Route = createFileRoute("/_dashboard/reports")({
   head: () => ({
@@ -110,6 +113,7 @@ function Reports() {
   const tx = useTx();
   const cases = useCases();
   const publicReports = usePublicReports();
+  const { profile } = useGovtechProfile();
 
   // 1. Dados agregados: Distribuição por Tipo de Violação
   const violationsByType = useMemo(() => {
@@ -176,62 +180,69 @@ function Reports() {
   }, [cases, publicReports]);
 
   // Função para Exportação Real de Dados em formato CSV (Compatível com Excel/Sheets)
-  const exportCsv = () => {
-    const headers = [
-      "Protocolo_ID",
-      "Data_Registro",
-      "Tipo_Violacao",
-      "Endereco_Anonimizado",
-      "Nivel_Risco",
-      "Status_Procedimento",
-      "Conselheiro_Responsavel",
-      "Conformidade_LGPD",
-    ];
+  const exportCsv = async () => {
+    try {
+      const databaseSummary = await getCmdcaReportSummary();
+      const rows =
+        databaseSummary ??
+        summarizeCmdcaRows([
+          ...cases.map((c) => ({
+            date: c.date,
+            region: c.councilRegion ?? "Não informada",
+            category: c.type,
+            status: c.status,
+          })),
+          ...publicReports.map((r) => ({
+            date: r.date,
+            region: r.region,
+            category: r.type,
+            status:
+              r.status === "received"
+                ? "Recebido"
+                : r.status === "protective_action"
+                  ? "Finalizado"
+                  : "Em processamento",
+          })),
+        ]);
 
-    const rows: string[][] = [
-      ...cases.map((c) => [
-        `CASO-#${c.id}`,
-        c.date,
-        `"${c.type}"`,
-        `"${maskAddress(c.address)}"`,
-        c.risk.toUpperCase(),
-        c.status.toUpperCase(),
-        `"${c.counselor}"`,
-        "ANONIMIZADO_ECA_LGPD",
-      ]),
-      ...publicReports.map((r) => [
-        r.pin,
-        r.date.split(" ")[0] || "2026-10-31",
-        `"${r.type}"`,
-        `"${r.region}"`,
-        "TRIAGEM_CIDADA",
-        r.status.toUpperCase(),
-        "PLANTÃO_COLEGIADO",
-        "ANONIMIZADO_ECA_LGPD",
-      ]),
-    ];
+      if (databaseSummary === null) {
+        await appendAuditEvents([
+          {
+            caseId: null,
+            action: "csv_exported",
+            summary: `Exportação demonstrativa de resumo agregado (${rows.length} grupo(s)).`,
+            actorProfile: profile,
+          },
+        ]);
+      }
 
-    const csvContent =
-      "\uFEFF" + // UTF-8 BOM para garantir acentos corretos no Excel
-      [headers.join(";"), ...rows.map((row) => row.join(";"))].join("\r\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `prestacao_contas_cmdca_farol_${new Date().getFullYear()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast.success(
-      tx(
-        "Relatório CSV exportado com sucesso! Dados anonimizados prontos para envio.",
-        "CSV Report exported successfully! Anonymized data ready for submission.",
-        "¡Informe CSV exportado con éxito!"
-      )
-    );
+      const csvContent = buildCsv(
+        ["Período", "Região", "Categoria agregada", "Status agregado", "Total"],
+        rows.map((row) => [row.period, row.region, row.category, row.status, row.total]),
+      );
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `prestacao_contas_cmdca_farol_${new Date().getFullYear()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast.success(
+        tx(
+          "Relatório agregado exportado. Grupos com menos de cinco registros são omitidos no ambiente conectado.",
+          "Aggregated report exported. Groups with fewer than five records are suppressed in the connected environment.",
+          "Informe agregado exportado. Los grupos con menos de cinco registros se omiten en el entorno conectado.",
+        ),
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : tx("Não foi possível gerar o relatório agregado.", "Could not generate the aggregated report.", "No se pudo generar el informe agregado."),
+      );
+    }
   };
 
   const handlePrint = () => {
@@ -258,7 +269,7 @@ function Reports() {
             <Button
               variant="outline"
               size="default"
-              onClick={exportCsv}
+              onClick={() => void exportCsv()}
               className="gap-2 font-medium shadow-xs"
             >
               <FileSpreadsheet className="size-4 text-emerald-600 dark:text-emerald-400" />
@@ -272,6 +283,18 @@ function Reports() {
             >
               <Printer className="size-4" />
               <span>{tx("Imprimir Relatório / PDF", "Print Report / PDF", "Imprimir Informe / PDF")}</span>
+            </Button>
+            <Button asChild size="default" variant="outline" className="gap-2 font-medium">
+              <a href="https://assinador.iti.br/" target="_blank" rel="noopener noreferrer">
+                <FileCheck2 className="size-4" />
+                <span>
+                  {tx(
+                    "Assinar PDF no GOV.BR",
+                    "Sign PDF on GOV.BR",
+                    "Firmar PDF en GOV.BR",
+                  )}
+                </span>
+              </a>
             </Button>
           </div>
         }

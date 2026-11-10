@@ -118,8 +118,8 @@ type CloudCaseRow = {
   protocol: string;
   council_region: string;
   assigned_counselor: string | null;
-  family_name: string;
-  child_name: string;
+  family_name?: string;
+  child_name?: string;
   child_age: number | null;
   violation_type: string;
   support_need: SupportNeed;
@@ -172,18 +172,18 @@ function mapCloudCase(row: CloudCaseRow): Case {
     .map((event) => {
       const metadata = event.metadata!;
       return {
-        id: String(metadata.id ?? event.occurred_at),
-        date: String(metadata.date ?? event.occurred_at.slice(0, 10)),
-        protocol: String(metadata.protocol ?? "Protocolo não informado"),
-        type: String(metadata.type ?? "Ofício gerado para revisão") as OfficialActType,
-        verificationKey: String(metadata.verificationKey ?? "N/A"),
-        actorProfile: String(metadata.actorProfile ?? "counselor") as GovtechProfile,
+        id: String(metadata["id"] ?? event.occurred_at),
+        date: String(metadata["date"] ?? event.occurred_at.slice(0, 10)),
+        protocol: String(metadata["protocol"] ?? "Protocolo não informado"),
+        type: String(metadata["type"] ?? "Ofício gerado para revisão") as OfficialActType,
+        verificationKey: String(metadata["verificationKey"] ?? "N/A"),
+        actorProfile: String(metadata["actorProfile"] ?? "counselor") as GovtechProfile,
       };
     });
   return {
     id: row.id,
-    family: row.family_name,
-    child: row.child_name,
+    family: row.family_name ?? "",
+    child: row.child_name ?? "",
     age: row.child_age ?? 0,
     type: row.violation_type,
     supportNeed: row.support_need,
@@ -202,11 +202,7 @@ function mapCloudCase(row: CloudCaseRow): Case {
 
 async function loadCloudCases(userId: string, region: string) {
   if (!supabase) return;
-  const { data, error } = await supabase
-    .from("cases")
-    .select("*, case_timeline(title, details, event_type, metadata, occurred_at)")
-    .eq("council_region", region)
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.rpc("get_authorized_cases");
   if (cloudSnapshot.userId !== userId) return;
   if (error) {
     cloudSnapshot = { ...cloudSnapshot, loading: false, error: error.message };
@@ -240,20 +236,15 @@ function useRemoteCases() {
       notifyCloud();
       void loadCloudCases(userId, region);
       cloudChannel = supabase
-        .channel(`cases-${userId}`)
+        .channel(`case-signals-${userId}`)
         .on(
           "postgres_changes",
           {
             event: "*",
             schema: "public",
-            table: "cases",
+            table: "case_change_signals",
             filter: `council_region=eq.${region}`,
           },
-          () => void loadCloudCases(userId, region),
-        )
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "case_timeline" },
           () => void loadCloudCases(userId, region),
         )
         .subscribe();
@@ -282,6 +273,28 @@ export function useCases() {
   return auth.user ? remote.userId === auth.user.id ? remote.cases : [] : localCases;
 }
 
+export async function getCaseSensitiveData(caseId: string) {
+  const auth = getAuthSnapshot();
+  if (!auth.user || !auth.profile?.approved_at) {
+    throw new Error("É necessário ter um perfil autenticado e aprovado para visualizar estes dados.");
+  }
+  if (!supabase) throw new Error("O Lovable Cloud não está configurado neste ambiente.");
+
+  const { data, error } = await supabase.rpc("get_case_sensitive_data", {
+    p_case_id: caseId,
+  });
+  if (error) throw error;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (
+    !row ||
+    typeof row.child_name !== "string" ||
+    typeof row.family_name !== "string"
+  ) {
+    throw new Error("O servidor não retornou os dados identificáveis do caso.");
+  }
+  return { child: row.child_name, family: row.family_name };
+}
+
 export function addCase(data: Omit<Case, "id" | "timeline" | "date"> & { timelineNote?: string }) {
   const id = String(Math.max(...cases.map((c) => Number(c.id))) + 1);
   const now = new Date();
@@ -301,26 +314,26 @@ export async function createCase(
   if (!supabase || !auth.profile?.approved_at || !auth.profile.council_region) {
     throw new Error("O perfil autenticado não está aprovado para criar casos.");
   }
-  const { data: row, error } = await supabase
-    .from("cases")
-    .insert({
-      council_region: auth.profile.council_region,
-      assigned_counselor: auth.user.id,
-      family_name: data.family,
-      child_name: data.child,
-      child_age: data.age,
-      violation_type: data.type,
-      support_need: data.supportNeed ?? "unknown",
-      risk: data.risk,
-      status: data.status,
-      address: data.address,
-      description: data.description,
-    })
-    .select("*")
-    .single();
+  const { data: response, error } = await supabase.rpc("create_case", {
+    p_child_name: data.child,
+    p_family_name: data.family,
+    p_child_age: data.age,
+    p_violation_type: data.type,
+    p_support_need: data.supportNeed ?? "unknown",
+    p_risk: data.risk,
+    p_status: data.status,
+    p_address: data.address,
+    p_description: data.description,
+  });
   if (error) throw error;
+  const row = Array.isArray(response) ? response[0] : response;
+  if (!row || typeof row.id !== "string") {
+    throw new Error("O servidor não retornou o caso criado.");
+  }
   const created = mapCloudCase({
     ...(row as Omit<CloudCaseRow, "case_timeline">),
+    child_name: "",
+    family_name: "",
     case_timeline: [],
   });
   created.counselor = auth.profile.full_name;
@@ -462,25 +475,12 @@ export async function addProtectiveMeasure(caseId: string, measure: Omit<Protect
   let created: ProtectiveMeasure | undefined;
   if (getAuthSnapshot().user) {
     if (!supabase) throw new Error("O Lovable Cloud não está configurado neste ambiente.");
-    const { data: row, error: readError } = await supabase
-      .from("cases")
-      .select("protective_measures")
-      .eq("id", caseId)
-      .single();
-    if (readError) throw readError;
-    const currentMeasures = (row.protective_measures ?? []) as ProtectiveMeasure[];
     created = { ...measure, id };
-    const { error: updateError } = await supabase
-      .from("cases")
-      .update({ protective_measures: [...currentMeasures, created] })
-      .eq("id", caseId);
-    if (updateError) throw updateError;
-    await appendCloudTimeline(
-      caseId,
-      "protective_measure_added",
-      "Medida protetiva incluída",
-      `${created.title} · prazo de ${created.deadlineDays} dias.`,
-    );
+    const { error } = await supabase.rpc("add_case_protective_measure", {
+      p_case_id: caseId,
+      p_measure: created,
+    });
+    if (error) throw error;
     return created;
   }
   cases = cases.map((item) => {
@@ -500,48 +500,13 @@ export async function updateProtectiveMeasure(
 ) {
   if (getAuthSnapshot().user) {
     if (!supabase) throw new Error("O Lovable Cloud não está configurado neste ambiente.");
-    const { data: row, error: readError } = await supabase
-      .from("cases")
-      .select("protective_measures")
-      .eq("id", caseId)
-      .single();
-    if (readError) throw readError;
-    const currentMeasures = (row.protective_measures ?? []) as ProtectiveMeasure[];
-    const target = currentMeasures.find((measure) => measure.id === measureId);
-    if (!target) return false;
-    const updated = { ...target, ...changes };
-    const { error: updateError } = await supabase
-      .from("cases")
-      .update({
-        protective_measures: currentMeasures.map((measure) =>
-          measure.id === measureId ? updated : measure,
-        ),
-      })
-      .eq("id", caseId);
-    if (updateError) throw updateError;
-    const statusLabels: Record<ProtectiveMeasure["status"], string> = {
-      pending: "Pendente",
-      in_progress: "Em cumprimento",
-      completed: "Cumprida",
-      breached: "Descumprida",
-    };
-    const details =
-      changes.status && changes.status !== target.status
-        ? `Status atualizado: ${statusLabels[changes.status]}.`
-        : changes.deadlineDays
-          ? `Prazo atualizado para ${changes.deadlineDays} dias.`
-          : "Medida atualizada.";
-    await appendCloudTimeline(caseId, "protective_measure_updated", updated.title, details);
-    if (changes.status && changes.status !== target.status) {
-      const { error: auditError } = await supabase.from("audit_events").insert({
-        case_id: caseId,
-        actor_user_id: getAuthSnapshot().user!.id,
-        action: "protective_measure_status_changed",
-        summary: `${updated.title}: ${target.status} → ${changes.status}.`,
-      });
-      if (auditError) throw auditError;
-    }
-    return true;
+    const { data, error } = await supabase.rpc("update_case_protective_measure", {
+      p_case_id: caseId,
+      p_measure_id: measureId,
+      p_changes: changes,
+    });
+    if (error) throw error;
+    return data === true;
   }
   const currentMeasure = cases
     .find((item) => item.id === caseId)

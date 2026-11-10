@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BookOpen,
   Calendar,
-  CheckCircle2,
   Clock,
   Copy,
   ExternalLink,
@@ -124,24 +123,8 @@ function PinTrackingView({
 }) {
   const tx = useTx();
 
-  const getStatusColor = (status: PublicReport["status"]) => {
-    switch (status) {
-      case "screening":
-        return "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400";
-      case "visit_scheduled":
-        return "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400";
-      case "referred_network":
-        return "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
-      case "referred_mp":
-        return "border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400";
-      default:
-        return "border-primary/30 bg-primary/10 text-primary";
-    }
-  };
-
   return (
     <div className="space-y-5">
-      {/* Cabeçalho do Protocolo Sigiloso */}
       <div className="rounded-xl border border-sky-500/30 bg-sky-50/50 dark:bg-sky-950/20 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div>
@@ -152,59 +135,29 @@ function PinTrackingView({
               {report.pin}
             </p>
           </div>
-          <Badge variant="outline" className={`text-xs px-2.5 py-1 font-semibold ${getStatusColor(report.status)}`}>
+          <Badge
+            variant="outline"
+            className={`text-xs px-2.5 py-1 font-semibold ${
+              report.status === "received"
+                ? "border-primary/30 bg-primary/10 text-primary"
+                : report.status === "protective_action"
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+            }`}
+          >
             {report.statusLabel}
           </Badge>
         </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-border/60 pt-3 text-xs">
-          <div>
-            <span className="text-muted-foreground">{tx("Data de Registro:", "Registration Date:", "Fecha de Registro:")}</span>
-            <p className="font-medium text-foreground">{report.date}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">{tx("Tipo Notificado:", "Reported Type:", "Tipo Notificado:")}</span>
-            <p className="font-medium text-foreground">{report.type}</p>
-          </div>
-        </div>
       </div>
 
-      {/* Resumo do Procedimento */}
       <div className="rounded-lg border border-border/80 bg-card p-4 text-xs leading-relaxed text-muted-foreground shadow-xs">
-        <p className="font-medium text-foreground mb-1">
-          {tx("Posicionamento Oficial do Colegiado:", "Official Council Statement:", "Declaración Oficial:")}
+        <p>
+          {tx(
+            "A consulta pública informa somente o estado geral do protocolo. Detalhes do atendimento e da investigação permanecem sigilosos.",
+            "The public lookup only shows the protocol's general status. Case and investigation details remain confidential.",
+            "La consulta pública solo informa el estado general del protocolo. Los detalles de atención e investigación son confidenciales.",
+          )}
         </p>
-        <p>{report.summary}</p>
-      </div>
-
-      {/* Linha do Tempo Visual Sigilosa (Timeline Stepper) */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {tx("Linha do Tempo de Andamento", "Progress Timeline", "Línea de Tiempo")}
-        </h4>
-
-        <div className="relative pl-6 space-y-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-          {report.timeline.map((step, idx) => (
-            <div key={idx} className="relative">
-              <span
-                className={`absolute -left-[23px] top-0.5 flex size-4.5 items-center justify-center rounded-full ring-4 ring-background ${
-                  step.completed ? "bg-emerald-500 text-white" : "bg-muted-foreground/30 text-background"
-                }`}
-              >
-                {step.completed ? <CheckCircle2 className="size-3.5" /> : <Clock className="size-3" />}
-              </span>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold text-foreground">{step.title}</span>
-                  <span className="text-[11px] text-muted-foreground font-mono">({step.date})</span>
-                </div>
-                <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Aviso Legal de Proteção e Sigilo ECA / LGPD */}

@@ -93,6 +93,12 @@ function Shifts() {
 
   const [now, setNow] = useState<Date | null>(null);
   const [offset, setOffset] = useState(0);
+  const [alertClock, setAlertClock] = useState(() => Date.now());
+  const [demoCriticalAlert, setDemoCriticalAlert] = useState<{
+    deadline: number;
+    acceptedAt?: number;
+    escalatedAt?: number;
+  } | null>(null);
 
   // Swap modal state
   const [swapSelection, setSwapSelection] = useState<SwapSelection | null>(null);
@@ -106,18 +112,39 @@ function Shifts() {
   const [contactOpen, setContactOpen] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneDraft, setPhoneDraft] = useState("");
+  const [phoneConfirmed, setPhoneConfirmed] = useState(false);
 
   useEffect(() => {
     setNow(new Date());
     const timer = setInterval(() => setNow(new Date()), 60_000);
     try {
-      const savedPhone = localStorage.getItem("farol_shift_phone");
-      if (savedPhone) setPhone(savedPhone);
+      const savedPhone = localStorage.getItem("farol_shift_phone_confirmed_v2");
+      if (savedPhone && normalizePhone(savedPhone)) setPhone(savedPhone);
     } catch {
       /* optional preference */
     }
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setAlertClock(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (
+      demoCriticalAlert &&
+      !demoCriticalAlert.acceptedAt &&
+      !demoCriticalAlert.escalatedAt &&
+      alertClock >= demoCriticalAlert.deadline
+    ) {
+      setDemoCriticalAlert((current) =>
+        current && !current.acceptedAt && !current.escalatedAt
+          ? { ...current, escalatedAt: alertClock }
+          : current,
+      );
+    }
+  }, [alertClock, demoCriticalAlert]);
 
   const locale = lang === "pt" ? "pt-BR" : lang === "en" ? "en-US" : lang;
   const formatShortDate = (date: Date) =>
@@ -125,6 +152,9 @@ function Shifts() {
 
   const currentOnCall = now ? onCall(now) : null;
   const dates = now ? weekDates(now, offset) : [];
+  const alertSecondsRemaining = demoCriticalAlert
+    ? Math.max(0, Math.ceil((demoCriticalAlert.deadline - alertClock) / 1000))
+    : 0;
 
   // Strictly validated phone contact using pure helper normalizePhone
   const validContact = normalizePhone(phone);
@@ -193,18 +223,28 @@ function Shifts() {
       );
       return;
     }
+    if (!phoneConfirmed) {
+      toast.error(
+        tx(
+          "Confirme que o número informado é um contato oficial do Conselho.",
+          "Confirm that the number is an official Council contact.",
+          "Confirme que el número es un contacto oficial del Consejo.",
+        ),
+      );
+      return;
+    }
     setPhone(phoneDraft);
     try {
-      localStorage.setItem("farol_shift_phone", phoneDraft);
+      localStorage.setItem("farol_shift_phone_confirmed_v2", phoneDraft);
     } catch {
       /* optional preference */
     }
     setContactOpen(false);
     toast.success(
       tx(
-        "Telefone oficial de plantão cadastrado com sucesso!",
-        "Official on-call phone registered successfully!",
-        "¡Teléfono oficial de guardia registrado con éxito!"
+        "Número informado salvo neste navegador. O sistema não valida a titularidade nem envia alertas.",
+        "Number saved in this browser. The system does not verify ownership or send alerts.",
+        "Número guardado en este navegador. El sistema no verifica su titularidad ni envía alertas.",
       )
     );
   };
@@ -212,6 +252,87 @@ function Shifts() {
   return (
     <div className="space-y-6">
       <PageHeader title={t.shifts.title} subtitle={t.shifts.sub} />
+      <div
+        role="note"
+        className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-muted-foreground"
+      >
+        {tx(
+          "Escala e nomes demonstrativos: não representam plantonistas reais nem confirmam disponibilidade. O alerta abaixo é apenas uma simulação local; não use esta tela como canal oficial de emergência.",
+          "Demonstration roster and names: they do not represent real on-call staff or confirm availability. The alert below is a local simulation only; do not use this page as an official emergency channel.",
+          "Escala y nombres demostrativos: no representan personal real ni confirman disponibilidad. La alerta es solo una simulación local; no use esta pantalla como canal oficial de emergencia.",
+        )}
+      </div>
+
+      <Card className="border-amber-500/30 bg-amber-500/5 shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Radio className="size-5 text-amber-600" />
+            {tx("Simulador de transbordo crítico", "Critical alert escalation demo", "Simulador de escalamiento crítico")}
+          </CardTitle>
+          <CardDescription>
+            {tx(
+              "Demonstra o aceite em 15 minutos e o transbordo para coordenação. Não envia SMS/WhatsApp, não aciona o plantonista e não continua funcionando após fechar esta página.",
+              "Demonstrates a 15-minute acknowledgment window and coordinator escalation. It does not send SMS/WhatsApp, contact the on-call counselor, or run after this page is closed.",
+              "Demuestra la ventana de aceptación de 15 minutos y el escalamiento a coordinación. No envía SMS/WhatsApp, no contacta al consejero ni continúa al cerrar esta página.",
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3">
+          {!demoCriticalAlert ||
+          demoCriticalAlert.acceptedAt ||
+          demoCriticalAlert.escalatedAt ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const startedAt = Date.now();
+                setAlertClock(startedAt);
+                setDemoCriticalAlert({ deadline: startedAt + 15 * 60 * 1000 });
+              }}
+            >
+              <AlertCircle className="mr-2 size-4" />
+              {tx("Iniciar alerta de demonstração", "Start demo alert", "Iniciar alerta de demostración")}
+            </Button>
+          ) : (
+            <>
+              <p role="status" aria-live="polite" className="text-sm font-medium">
+                {demoCriticalAlert.escalatedAt
+                  ? tx(
+                      "Prazo expirado: transbordo demonstrativo para coordenação.",
+                      "Deadline expired: demo escalation to coordinator.",
+                      "Plazo vencido: escalamiento demostrativo a coordinación.",
+                    )
+                  : tx(
+                      `Aguardando aceite · ${Math.floor(alertSecondsRemaining / 60)}:${String(alertSecondsRemaining % 60).padStart(2, "0")}`,
+                      `Awaiting acknowledgment · ${Math.floor(alertSecondsRemaining / 60)}:${String(alertSecondsRemaining % 60).padStart(2, "0")}`,
+                      `Esperando aceptación · ${Math.floor(alertSecondsRemaining / 60)}:${String(alertSecondsRemaining % 60).padStart(2, "0")}`,
+                    )}
+              </p>
+              <Button
+                type="button"
+                onClick={() =>
+                  setDemoCriticalAlert((current) =>
+                    current ? { ...current, acceptedAt: Date.now() } : current,
+                  )
+                }
+              >
+                <CheckCircle2 className="mr-2 size-4" />
+                {tx("Registrar aceite (demonstração)", "Acknowledge (demo)", "Aceptar (demostración)")}
+              </Button>
+            </>
+          )}
+          {demoCriticalAlert?.acceptedAt && (
+            <Badge variant="success">
+              {tx("Aceite registrado somente nesta tela", "Acknowledgment recorded on this page only", "Aceptación registrada solo en esta pantalla")}
+            </Badge>
+          )}
+          {demoCriticalAlert?.escalatedAt && (
+            <Badge variant="warning">
+              {tx("Transbordo simulado; nenhum contato foi acionado", "Escalation simulated; no one was contacted", "Escalamiento simulado; nadie fue contactado")}
+            </Badge>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Card de Destaque no Topo: Plantão de Emergência de Hoje */}
       <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-card via-card to-accent/20 shadow-md">
@@ -343,6 +464,7 @@ function Shifts() {
                       aria-label={tx("Alterar número de emergência", "Change emergency phone", "Cambiar teléfono")}
                       onClick={() => {
                         setPhoneDraft(phone);
+                        setPhoneConfirmed(false);
                         setContactOpen(true);
                       }}
                     >
@@ -357,6 +479,7 @@ function Shifts() {
                       className="gap-2 border-primary/40 bg-accent text-accent-foreground hover:bg-accent/80 font-medium"
                       onClick={() => {
                         setPhoneDraft(phone);
+                        setPhoneConfirmed(false);
                         setContactOpen(true);
                       }}
                     >
@@ -708,16 +831,16 @@ function Shifts() {
             </div>
             <DialogTitle>
               {tx(
-                "Telefone Oficial de Emergência do Conselho",
-                "Official Council Emergency Phone",
-                "Teléfono Oficial de Emergencia del Consejo"
+                "Número informado para o plantão",
+                "Number provided for on-call use",
+                "Número informado para la guardia",
               )}
             </DialogTitle>
             <DialogDescription className="leading-relaxed">
               {tx(
-                "Informe o número oficial com DDD brasileiro (ex: 11 98888-7777). Esse número será vinculado aos botões rápidos de Ligar e WhatsApp durante o plantão.",
-                "Enter the official Brazilian phone with area code (e.g. 11 98888-7777). It will be linked to Call and WhatsApp buttons during duty.",
-                "Ingrese el número oficial brasileño con código de área (ej: 11 98888-7777). Se vinculará a los botones de Llamar y WhatsApp."
+                "Informe um número confirmado pela instituição como contato oficial (ex: 65 98888-7777). O protótipo apenas cria links de Ligar e WhatsApp; não verifica o titular nem dispara mensagens.",
+                "Enter a number institutionally confirmed as an official contact (e.g. 65 98888-7777). This prototype only creates Call and WhatsApp links; it does not verify ownership or send messages.",
+                "Ingrese un número confirmado por la institución como contacto oficial (ej.: 65 98888-7777). El prototipo solo crea enlaces de llamada y WhatsApp; no verifica titularidad ni envía mensajes.",
               )}
             </DialogDescription>
           </DialogHeader>
@@ -738,12 +861,27 @@ function Shifts() {
               />
               <p className="text-[11px] text-muted-foreground">
                 {tx(
-                  "Padrão brasileiro: DDD + 8 ou 9 dígitos.",
-                  "Brazilian format: 2-digit DDD + 8 or 9 digits.",
-                  "Formato brasileño: código de área + 8 o 9 dígitos."
+                  "Padrão brasileiro: DDD + 8 ou 9 dígitos. O número fica neste navegador; não há envio automático de SMS ou WhatsApp.",
+                  "Brazilian format: 2-digit area code + 8 or 9 digits. The number stays in this browser; no SMS or WhatsApp is sent automatically.",
+                  "Formato brasileño: código de área + 8 o 9 dígitos. El número queda en este navegador; no se envían SMS o WhatsApp automáticamente.",
                 )}
               </p>
             </div>
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={phoneConfirmed}
+                onChange={(event) => setPhoneConfirmed(event.target.checked)}
+                className="mt-1 accent-primary"
+              />
+              <span>
+                {tx(
+                  "Confirmo que este número é um contato oficial de plantão do Conselho.",
+                  "I confirm this is an official Council on-call contact number.",
+                  "Confirmo que este es un número oficial de guardia del Consejo.",
+                )}
+              </span>
+            </label>
 
             <DialogFooter className="gap-2 sm:justify-end">
               <Button

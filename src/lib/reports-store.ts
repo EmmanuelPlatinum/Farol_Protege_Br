@@ -11,6 +11,8 @@ export type ReportStatus =
   | "referred_mp"
   | "protective_action";
 
+type PublicTrackingStatus = "received" | "processing" | "finalized";
+
 export type ReportTimelineStep = {
   date: string;
   title: string;
@@ -62,35 +64,24 @@ export async function getCloudPublicReportStatus(rawProtocol: string) {
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
   if (!row || typeof row.protocol !== "string") return null;
-  const labels: Record<ReportStatus, string> = {
-    received: "Recebida pelo Conselho",
-    screening: "Em triagem",
-    visit_scheduled: "Visita agendada",
-    visit_completed: "Visita realizada",
-    referred_network: "Encaminhada à rede de proteção",
-    referred_mp: "Encaminhada ao Ministério Público",
-    protective_action: "Providência protetiva registrada",
+  const statuses: Record<PublicTrackingStatus, { status: ReportStatus; label: string }> = {
+    received: { status: "received", label: "Recebido" },
+    processing: { status: "screening", label: "Em processamento" },
+    finalized: { status: "protective_action", label: "Finalizado" },
   };
-  const status = row.status as ReportStatus;
-  if (!(status in labels)) throw new Error("O servidor retornou um status de denúncia inválido.");
-  const createdAt = new Date(row.created_at as string);
+  const publicStatus = Object.hasOwn(statuses, row.status)
+    ? statuses[row.status as PublicTrackingStatus]
+    : undefined;
+  if (!publicStatus) throw new Error("O servidor retornou um status público inválido.");
   return {
     pin: row.protocol as string,
-    date: createdAt.toLocaleString("pt-BR"),
+    date: "",
     type: "Denúncia cidadã",
     region: "",
-    status,
-    statusLabel: labels[status],
-    summary: "Consulta limitada ao protocolo; detalhes do relato não são exibidos neste canal público.",
-    timeline: [
-      {
-        stepNumber: 1,
-        date: createdAt.toLocaleString("pt-BR"),
-        title: labels[status],
-        description: "Atualização pública sem dados pessoais ou conteúdo do relato.",
-        completed: true,
-      },
-    ],
+    status: publicStatus.status,
+    statusLabel: publicStatus.label,
+    summary: "A consulta pública informa somente o estado geral do protocolo.",
+    timeline: [],
   } satisfies PublicReport;
 }
 
@@ -322,12 +313,34 @@ export function findPublicReportByPin(rawPin: string): PublicReport | null {
   const target = normalizePin(rawPin);
   const cleanTarget = target.replace(/[^A-Z0-9]/g, "");
 
-  return (
+  const report =
     reports.find((r) => {
       const cur = r.pin.replace(/[^A-Z0-9]/g, "");
       return cur === cleanTarget || cur.endsWith(cleanTarget) || cleanTarget.endsWith(cur);
-    }) ?? null
-  );
+    }) ?? null;
+  if (!report) return null;
+
+  const status: PublicTrackingStatus =
+    report.status === "received"
+      ? "received"
+      : report.status === "protective_action"
+        ? "finalized"
+        : "processing";
+  const labels: Record<PublicTrackingStatus, string> = {
+    received: "Recebido",
+    processing: "Em processamento",
+    finalized: "Finalizado",
+  };
+  return {
+    pin: report.pin,
+    date: "",
+    type: "Denúncia cidadã",
+    region: "",
+    status: status === "received" ? "received" : status === "finalized" ? "protective_action" : "screening",
+    statusLabel: labels[status],
+    summary: "A consulta pública informa somente o estado geral do protocolo.",
+    timeline: [],
+  };
 }
 
 export function addPublicReport(data: {
